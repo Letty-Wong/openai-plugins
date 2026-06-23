@@ -1,0 +1,133 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+
+import { domTreeText, ownershipRows } from "../src/presentation/spatial-lab/SpatialLabStage";
+import { resolveStageTarget } from "../src/presentation/spatial-lab/stage-target";
+
+test("WP-48 exposes /spatial-lab as the V4 true spatial lab route", () => {
+  const pageSource = readFileSync("app/spatial-lab/page.tsx", "utf8");
+  const labSource = readFileSync("src/presentation/spatial-lab/SpatialLabClientStage.tsx", "utf8");
+
+  assert.match(pageSource, /SpatialLabStage/);
+  assert.match(pageSource, /searchParams/);
+  assert.match(pageSource, /beatById\.has/);
+  assert.match(labSource, /data-spatial-lab-version="V4"/);
+  assert.match(labSource, /data-owner="WorldCamera"/);
+  assert.match(labSource, /data-owner="WorldSpace"/);
+  assert.match(labSource, /data-owner="PersistentActors"/);
+});
+
+test("WP-48 keeps the real hierarchy WorldCamera -> WorldSpace -> PersistentActors", () => {
+  assert.match(
+    domTreeText,
+    /spatial-lab-world-camera[\s\S]*spatial-lab-world-space[\s\S]*spatial-lab-persistent-actors/
+  );
+  assert.match(domTreeText, /spatial-lab-artifact-system/);
+  assert.match(domTreeText, /spatial-lab-screen-copy/);
+  assert.match(domTreeText, /spatial-lab-actor\[data-stage-actor-id\]\[data-target-pose-id\]/);
+});
+
+test("WP-48 assigns attribute ownership to exactly one structural layer", () => {
+  assert.deepEqual(
+    ownershipRows.map((row) => row.layer),
+    [
+      "ScreenViewport",
+      "WorldCamera",
+      "WorldSpace",
+      "PersistentActors",
+      "ArtifactSystem",
+      "ScreenCopyLayer",
+      "PoseTransitionRuntime"
+    ]
+  );
+  assert.match(ownershipRows.find((row) => row.layer === "WorldCamera")?.owns ?? "", /camera DOM/);
+  assert.match(ownershipRows.find((row) => row.layer === "PoseTransitionRuntime")?.owns ?? "", /CSS variables/);
+});
+
+test("WP-48 spatial lab does not mount the old visual stage or motion runtimes", () => {
+  const labSource = readFileSync("src/presentation/spatial-lab/SpatialLabClientStage.tsx", "utf8");
+  const runtimeSource = readFileSync("src/presentation/spatial-lab/PoseTransitionRuntime.tsx", "utf8");
+
+  assert.doesNotMatch(labSource, /VisualStage/);
+  assert.doesNotMatch(labSource, /SpatialStage/);
+  assert.doesNotMatch(labSource, /ContinuityMotionRuntime/);
+  assert.doesNotMatch(labSource, /StageMotionRuntime/);
+  assert.doesNotMatch(runtimeSource, /ContinuityMotionRuntime/);
+  assert.doesNotMatch(runtimeSource, /StageMotionRuntime/);
+});
+
+test("WP-49 resolves a complete StageTarget from any checked beat without click history", () => {
+  const target = resolveStageTarget("16.1");
+
+  assert.equal(target.beatId, "16.1");
+  assert.equal(target.movementKind, "spatial");
+  assert.equal(target.camera.poseId, "camera.portal-forward-safety");
+  assert.equal(target.actors["actor.integration-ring"].actorId, "actor.integration-ring");
+  assert.equal(target.actors["actor.product-stage"].actorId, "actor.product-stage");
+  assert.equal(target.artifacts["artifact.F01"].artifactId, "artifact.F01");
+  assert.equal(target.transition?.id, "transition.15-16.forward-safety-portal");
+});
+
+test("WP-49 reduced motion patch keeps identity and removes camera rotation", () => {
+  const normal = resolveStageTarget("21.1");
+  const reduced = resolveStageTarget("21.1", { reducedMotion: true });
+
+  assert.equal(reduced.id, "stage-target:21.1:reduced");
+  assert.equal(reduced.beatId, normal.beatId);
+  assert.equal(reduced.actors["actor.action-path"].actorId, normal.actors["actor.action-path"].actorId);
+  assert.equal(reduced.camera.rotationX, 0);
+  assert.equal(reduced.camera.rotationY, 0);
+  assert.equal(reduced.camera.rotationZ, 0);
+});
+
+test("WP-50 spatial lab has one pose runtime and no generic fromTo entrance model", () => {
+  const labSource = readFileSync("src/presentation/spatial-lab/SpatialLabClientStage.tsx", "utf8");
+  const runtimeSource = readFileSync("src/presentation/spatial-lab/PoseTransitionRuntime.tsx", "utf8");
+
+  assert.match(labSource, /PoseTransitionRuntime/);
+  assert.doesNotMatch(runtimeSource, /fromTo/);
+  assert.match(runtimeSource, /overwrite: "auto"/);
+  assert.match(runtimeSource, /movementKind === "stable"/);
+});
+
+test("WP-51 SR-04 keeps the ring anchor and product actor identity through 08 to 09", () => {
+  const beforeTurn = resolveStageTarget("08.7");
+  const turn = resolveStageTarget("09.1");
+
+  assert.equal(turn.transition?.gate, "SR-04");
+  assert.equal(turn.camera.poseId, "camera.turn-horizontal-product");
+  assert.equal(beforeTurn.actors["actor.product-stage"].actorId, turn.actors["actor.product-stage"].actorId);
+  assert.equal(turn.actors["actor.product-stage"].visible, true);
+  assert.equal(turn.actors["actor.integration-ring"].visible, true);
+  assert.ok(turn.actors["actor.integration-ring"].opacity > 0.9);
+  assert.equal(turn.ring.role, "product-gate-turn");
+});
+
+test("WP-51 SR-05 builds a forward portal with layered artifacts and retained product world", () => {
+  const freeze = resolveStageTarget("15.8");
+  const portal = resolveStageTarget("16.1");
+  const artifactDepths = Object.values(portal.artifacts).map((artifact) => artifact.z);
+
+  assert.equal(portal.transition?.gate, "SR-05");
+  assert.equal(portal.camera.poseId, "camera.portal-forward-safety");
+  assert.equal(freeze.actors["actor.product-stage"].actorId, portal.actors["actor.product-stage"].actorId);
+  assert.ok(portal.actors["actor.product-stage"].opacity > 0.5);
+  assert.equal(portal.ring.role, "portal-to-safety-boundary");
+  assert.ok(Math.max(...artifactDepths) - Math.min(...artifactDepths) >= 300);
+  assert.ok(portal.camera.scale < 2);
+});
+
+test("WP-51 SR-06 keeps ActionPath identity while dollying back to the final loop", () => {
+  const route = resolveStageTarget("20.10");
+  const finale = resolveStageTarget("21.1");
+
+  assert.equal(finale.transition?.gate, "SR-06");
+  assert.equal(finale.camera.poseId, "camera.dolly-back-finale");
+  assert.equal(route.actors["actor.action-path"].actorId, finale.actors["actor.action-path"].actorId);
+  assert.equal(finale.actors["actor.action-path"].visible, true);
+  assert.equal(finale.ring.gap, 0);
+  assert.equal(finale.ring.role, "final-loop-reveal");
+  assert.equal(finale.product.placeholderOnly, true);
+  assert.equal(finale.actors["actor.cta-dock"].visible, true);
+});

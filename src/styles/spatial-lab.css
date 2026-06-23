@@ -1,0 +1,312 @@
+.spatial-lab-root {
+  min-height: 100dvh;
+  background: #141311;
+  color: #f2eadc;
+  display: grid;
+  grid-template-rows: auto minmax(520px, 1fr) auto auto auto auto;
+  gap: 18px;
+  padding: 22px;
+}
+
+.spatial-lab-header {
+  display: grid;
+  gap: 4px;
+}
+
+.spatial-lab-header p,
+.spatial-lab-header span {
+  color: #b8aea0;
+  font-size: 12px;
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.spatial-lab-header h1 {
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.spatial-lab-viewport {
+  border: 1px solid rgba(242, 234, 220, 0.22);
+  min-height: 520px;
+  overflow: hidden;
+  position: relative;
+  perspective: var(--lab-camera-perspective, 1100px);
+  background:
+    linear-gradient(rgba(242, 234, 220, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(242, 234, 220, 0.035) 1px, transparent 1px),
+    #191714;
+  background-size: 72px 72px;
+}
+
+.spatial-lab-world-camera {
+  inset: 0;
+  position: absolute;
+  transform:
+    translate3d(var(--lab-camera-x, 0px), var(--lab-camera-y, 0px), var(--lab-camera-z, 0px))
+    rotateX(var(--lab-camera-rotate-x, 0deg))
+    rotateY(var(--lab-camera-rotate-y, 0deg))
+    rotateZ(var(--lab-camera-rotate-z, 0deg))
+    scale(var(--lab-camera-scale, 1));
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.spatial-lab-world-space {
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  width: 100%;
+}
+
+.spatial-lab-world-atmosphere {
+  border: 1px dashed rgba(186, 176, 160, 0.28);
+  inset: 11%;
+  position: absolute;
+  transform: translateZ(-220px);
+}
+
+.spatial-lab-persistent-actors {
+  inset: 0;
+  position: absolute;
+  transform-style: preserve-3d;
+}
+
+.spatial-lab-actor {
+  align-content: center;
+  background: rgba(242, 234, 220, 0.08);
+  border: 1px solid rgba(242, 234, 220, 0.28);
+  color: #f2eadc;
+  display: grid;
+  gap: 5px;
+  min-height: 82px;
+  padding: 10px;
+  position: absolute;
+  text-align: left;
+  transform:
+    translate3d(
+      calc(50vw + var(--lab-actor-x, 0px)),
+      calc(42vh + var(--lab-actor-y, 0px)),
+      var(--lab-actor-z, 0px)
+    )
+    translate(-50%, -50%)
+    rotateX(var(--lab-actor-rotate-x, 0deg))
+    rotateY(var(--lab-actor-rotate-y, 0deg))
+    rotateZ(var(--lab-actor-rotate-z, 0deg))
+    scale(var(--lab-actor-scale, 1));
+  width: min(260px, 22vw);
+  opacity: var(--lab-actor-opacity, 0);
+  will-change: opacity, transform;
+}
+
+.spatial-lab-actor[data-actor-role="lead"] {
+  border-color: rgba(174, 54, 45, 0.88);
+  background: rgba(174, 54, 45, 0.16);
+}
+
+.spatial-lab-actor span,
+.spatial-lab-actor strong,
+.spatial-lab-actor small {
+  display: block;
+  letter-spacing: 0;
+}
+
+.spatial-lab-actor span {
+  font-size: 12px;
+}
+
+.spatial-lab-actor strong {
+  color: #d65f51;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.spatial-lab-actor small {
+  color: #b8aea0;
+  font-size: 11px;
+}
+
+.spatial-lab-artifact-system {
+  inset: 0;
+  position: absolute;
+  transform-style: preserve-3d;
+}
+
+.spatial-lab-artifact {
+  align-content: center;
+  background: rgba(242, 234, 220, 0.16);
+  border: 1px solid rgba(242, 234, 220, 0.34);
+  color: #f2eadc;
+  display: grid;
+  height: 58px;
+  padding: 8px;
+  position: absolute;
+  transform:
+    translate3d(
+      calc(50vw + var(--lab-artifact-x, 0px)),
+      calc(42vh + var(--lab-artifact-y, 0px)),
+      var(--lab-artifact-z, 0px)
+    )
+    translate(-50%, -50%)
+    scale(var(--lab-artifact-scale, 1));
+  width: 128px;
+  opacity: var(--lab-artifact-opacity, 0);
+  will-change: opacity, transform;
+}
+
+.spatial-lab-artifact span,
+.spatial-lab-artifact strong {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+.spatial-lab-artifact strong {
+  color: #d65f51;
+}
+
+.spatial-lab-world-typography {
+  bottom: 24px;
+  color: rgba(242, 234, 220, 0.52);
+  display: grid;
+  gap: 4px;
+  left: 24px;
+  max-width: 360px;
+  position: absolute;
+  transform: translateZ(180px);
+}
+
+.spatial-lab-world-typography span,
+.spatial-lab-world-typography strong {
+  display: block;
+  letter-spacing: 0;
+}
+
+.spatial-lab-world-typography span {
+  color: #d65f51;
+  font-size: 12px;
+}
+
+.spatial-lab-world-typography strong {
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.spatial-lab-screen-copy {
+  border-top: 1px solid rgba(242, 234, 220, 0.18);
+  display: grid;
+  gap: 5px;
+  padding-top: 12px;
+}
+
+.spatial-lab-screen-copy p,
+.spatial-lab-screen-copy span,
+.spatial-lab-screen-copy small {
+  color: #b8aea0;
+  font-size: 12px;
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.spatial-lab-screen-copy h2 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.spatial-lab-transition-readout {
+  border-top: 1px solid rgba(242, 234, 220, 0.16);
+  display: grid;
+  gap: 7px;
+  padding-top: 12px;
+}
+
+.spatial-lab-transition-readout p,
+.spatial-lab-transition-readout li {
+  color: #b8aea0;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.spatial-lab-transition-readout p,
+.spatial-lab-transition-readout h2,
+.spatial-lab-transition-readout ul {
+  margin: 0;
+}
+
+.spatial-lab-transition-readout h2 {
+  color: #d65f51;
+  font-size: 15px;
+}
+
+.spatial-lab-transition-readout ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+}
+
+.spatial-lab-transition-readout li {
+  border: 1px solid rgba(242, 234, 220, 0.18);
+  padding: 6px 8px;
+}
+
+.spatial-lab-lab-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.spatial-lab-lab-controls button {
+  background: rgba(242, 234, 220, 0.08);
+  border: 1px solid rgba(242, 234, 220, 0.24);
+  color: #f2eadc;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0;
+  min-height: 32px;
+  padding: 0 10px;
+}
+
+.spatial-lab-lab-controls button[aria-pressed="true"] {
+  border-color: rgba(214, 95, 81, 0.9);
+  color: #d65f51;
+}
+
+.spatial-lab-contract {
+  border-top: 1px solid rgba(242, 234, 220, 0.18);
+  display: grid;
+  gap: 10px;
+  padding-top: 16px;
+}
+
+.spatial-lab-contract h2 {
+  font-size: 14px;
+  margin: 0;
+}
+
+.spatial-lab-contract pre {
+  color: #d8cfc2;
+  font-size: 12px;
+  line-height: 1.55;
+  margin: 0;
+  overflow: auto;
+}
+
+.spatial-lab-contract table {
+  border-collapse: collapse;
+  font-size: 12px;
+  width: 100%;
+}
+
+.spatial-lab-contract th,
+.spatial-lab-contract td {
+  border-top: 1px solid rgba(242, 234, 220, 0.16);
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}

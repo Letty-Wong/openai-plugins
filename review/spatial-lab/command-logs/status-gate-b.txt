@@ -1,0 +1,32 @@
+# Gate B Status
+
+- Gate B decision: `PENDING_HUMAN_REVIEW`
+- Review doc ready: `true`
+- Required command logs missing: `0`
+- Required screenshots missing: `0`
+- Required recordings missing: `6`
+- SR-07 allowed: `false`
+- Allowed next action: Complete human review, no-cut recordings, and docs/gate-b-review-decision-record.md before SR-07.
+
+## Missing Command Logs
+
+- None
+
+## Missing Screenshots
+
+- None
+
+## Missing Recordings
+
+- review/spatial-lab/recordings/gate-b/sr04-08-7-to-09-1-forward.mp4
+- review/spatial-lab/recordings/gate-b/sr04-09-1-to-08-7-backward.mp4
+- review/spatial-lab/recordings/gate-b/sr05-15-8-to-16-1-forward.mp4
+- review/spatial-lab/recordings/gate-b/sr05-16-1-to-15-8-backward.mp4
+- review/spatial-lab/recordings/gate-b/sr06-20-10-to-21-1-forward.mp4
+- review/spatial-lab/recordings/gate-b/sr06-21-1-to-20-10-backward.mp4
+
+## Guardrails
+
+- Do not start SR-07 until `Decision: PASS` is recorded by a human reviewer.
+- Do not use real product assets, real QR codes, or unapproved business facts.
+- Do not replace the old main presentation until SR-11.

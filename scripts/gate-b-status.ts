@@ -1,7 +1,13 @@
 import { existsSync, readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
-export type GateBDecision = "FAIL" | "PASS" | "PENDING_HUMAN_REVIEW" | "SMALL_FIX" | "UNKNOWN";
+export type GateBDecision =
+  | "FAIL"
+  | "INVALID_UNTIL_GATE_A_PASS"
+  | "PASS"
+  | "PENDING_HUMAN_REVIEW"
+  | "SMALL_FIX"
+  | "UNKNOWN";
 
 const decisionRecordPath = "docs/gate-b-review-decision-record.md";
 const reviewDocPath = "docs/gate-b-transition-graybox-review.md";
@@ -34,7 +40,13 @@ export function parseGateBDecision(decisionRecord = readText(decisionRecordPath)
   const match = decisionRecord.match(/Decision:\s*([A-Z_]+)/);
   const value = match?.[1];
 
-  if (value === "PASS" || value === "SMALL_FIX" || value === "FAIL" || value === "PENDING_HUMAN_REVIEW") {
+  if (
+    value === "PASS" ||
+    value === "SMALL_FIX" ||
+    value === "FAIL" ||
+    value === "PENDING_HUMAN_REVIEW" ||
+    value === "INVALID_UNTIL_GATE_A_PASS"
+  ) {
     return value;
   }
 
@@ -91,6 +103,10 @@ function allowedAction(status: GateBStatus): string {
     return "Rework V4 spatial hierarchy, StageTarget, PoseTransitionRuntime, and Gate B greybox targets before SR-07.";
   }
 
+  if (status.decision === "INVALID_UNTIL_GATE_A_PASS") {
+    return "Do not continue Gate B or SR-07. Complete FIX-A1.1, FIX-A2, FIX-A3, and Gate A human review first.";
+  }
+
   return "Complete human review, no-cut recordings, and docs/gate-b-review-decision-record.md before SR-07.";
 }
 
@@ -122,7 +138,8 @@ export function buildGateBStatusReport(): string {
     "",
     "## Guardrails",
     "",
-    "- Do not start SR-07 until `Decision: PASS` is recorded by a human reviewer.",
+    "- Do not start SR-07 until `Decision: PASS` is recorded by a human reviewer after Gate A has passed.",
+    "- Treat Gate B transition evidence as invalid while `Decision: INVALID_UNTIL_GATE_A_PASS` is recorded.",
     "- Do not use real product assets, real QR codes, or unapproved business facts.",
     "- Do not replace the old main presentation until SR-11.",
     ""

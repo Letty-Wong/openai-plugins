@@ -15,18 +15,19 @@ import {
 import { buildGateBReviewKit } from "../scripts/gate-b-review-kit";
 import { buildSr07GuardMessage } from "../scripts/guard-sr07-start";
 
-test("WP-52 Gate B decision record defaults to pending human review", () => {
+test("WP-52 Gate B decision record is invalid until Gate A passes", () => {
   const decisionRecord = readFileSync("docs/gate-b-review-decision-record.md", "utf8");
 
-  assert.equal(parseGateBDecision(decisionRecord), "PENDING_HUMAN_REVIEW");
+  assert.equal(parseGateBDecision(decisionRecord), "INVALID_UNTIL_GATE_A_PASS");
   assert.match(decisionRecord, /Required Evidence Before PASS/);
+  assert.match(decisionRecord, /Gate A has passed human review/);
   assert.match(decisionRecord, /no-cut recordings/);
 });
 
 test("WP-52 Gate B status requires review doc and all six screenshots", () => {
   const status = getGateBStatus();
 
-  assert.equal(status.decision, "PENDING_HUMAN_REVIEW");
+  assert.equal(status.decision, "INVALID_UNTIL_GATE_A_PASS");
   assert.equal(status.missingCommandLogs.length >= 0, true);
   assert.equal(status.missingRecordings.length, 6);
   assert.equal(status.reviewDocReady, true);
@@ -38,7 +39,7 @@ test("WP-52 SR-07 guard blocks until Gate B PASS", () => {
   const message = buildSr07GuardMessage();
 
   assert.match(message, /Allowed: `false`/);
-  assert.match(message, /Gate B decision: `PENDING_HUMAN_REVIEW`/);
+  assert.match(message, /Gate B decision: `INVALID_UNTIL_GATE_A_PASS`/);
   assert.match(message, /Missing recordings: `6`/);
   assert.match(message, /Decision: PASS/);
 });
@@ -53,7 +54,7 @@ test("WP-52 Gate B command docs and checklist exist", () => {
 
   const report = buildGateBStatusReport();
   assert.match(report, /SR-07 allowed: `false`/);
-  assert.match(report, /Allowed next action: Complete human review/);
+  assert.match(report, /Allowed next action: Do not continue Gate B or SR-07/);
   assert.match(report, /Required recordings missing: `6`/);
 });
 

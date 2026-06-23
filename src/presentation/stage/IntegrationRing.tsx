@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { StaticFrameKind } from "@/presentation/stage/static-frames";
 
 const segmentPaths = [
@@ -8,8 +9,34 @@ const segmentPaths = [
   "M 74 30 A 75 75 0 0 1 90 26"
 ];
 
+export const integrationRingSegmentIds = [
+  "integration-ring-segment-1",
+  "integration-ring-segment-2",
+  "integration-ring-segment-3",
+  "integration-ring-segment-4",
+  "integration-ring-segment-5"
+] as const;
+
+export type IntegrationRingTone = "paper" | "ink";
+
+export type IntegrationRingGeometryState = {
+  readonly gap?: number;
+  readonly glow?: number;
+  readonly portalRadius?: number;
+  readonly segmentProgress?: readonly number[];
+  readonly thickness?: number;
+};
+
 type IntegrationRingProps = {
   readonly frameKind: StaticFrameKind;
+};
+
+type IntegrationRingGeometryProps = {
+  readonly className?: string;
+  readonly geometryId?: string;
+  readonly role: string;
+  readonly state?: IntegrationRingGeometryState;
+  readonly tone: IntegrationRingTone;
 };
 
 export function IntegrationRing({ frameKind }: IntegrationRingProps) {
@@ -29,11 +56,28 @@ export function IntegrationRing({ frameKind }: IntegrationRingProps) {
             ? "timeline"
             : "portal";
 
+  return <IntegrationRingGeometry role={role} tone={tone} />;
+}
+
+export function IntegrationRingGeometry({
+  className = "integration-ring",
+  geometryId,
+  role,
+  state,
+  tone
+}: IntegrationRingGeometryProps) {
   return (
     <svg
       aria-hidden="true"
-      className="integration-ring"
+      className={className}
+      data-actor-geometry={geometryId}
+      data-ring-gap={state?.gap}
+      data-ring-glow={state?.glow}
+      data-ring-portal-radius={state?.portalRadius}
       data-ring-role={role}
+      data-ring-segment-progress={state?.segmentProgress?.join(",")}
+      data-ring-thickness={state?.thickness}
+      style={ringStateStyle(state)}
       viewBox="0 0 200 200"
     >
       <circle className="ring-core" cx="100" cy="100" r="58" />
@@ -41,10 +85,21 @@ export function IntegrationRing({ frameKind }: IntegrationRingProps) {
         <path
           className={`ring-segment ${index === 0 ? "signal" : tone}`}
           d={path}
-          data-segment-id={`integration-ring-segment-${index + 1}`}
+          data-segment-id={integrationRingSegmentIds[index]}
           key={path}
         />
       ))}
     </svg>
   );
+}
+
+function ringStateStyle(state: IntegrationRingGeometryState | undefined): CSSProperties | undefined {
+  if (!state) return undefined;
+
+  return {
+    "--ring-gap": state.gap,
+    "--ring-glow": state.glow,
+    "--ring-portal-radius": state.portalRadius,
+    "--ring-thickness": state.thickness
+  } as CSSProperties;
 }

@@ -148,6 +148,13 @@
   background: rgba(174, 54, 45, 0.16);
 }
 
+.spatial-lab-actor[data-stage-actor-id="actor.integration-ring"][data-actor-role="lead"],
+.spatial-lab-actor[data-stage-actor-id="actor.product-stage"][data-actor-role="lead"],
+.spatial-lab-actor[data-stage-actor-id="actor.action-path"][data-actor-role="lead"] {
+  background: transparent;
+  border: 0;
+}
+
 .spatial-lab-actor-debug,
 .spatial-lab-actor-debug span,
 .spatial-lab-actor-debug strong,
@@ -188,104 +195,27 @@
   width: 100%;
 }
 
-.spatial-lab-ring-core {
-  fill: rgba(20, 19, 17, 0.58);
-  stroke: rgba(242, 234, 220, 0.12);
-  stroke-width: 1;
+.spatial-lab-ring-geometry .ring-segment {
+  stroke-width: calc(var(--ring-thickness, 10) * 1px);
 }
 
-.spatial-lab-ring-track {
-  fill: none;
-  stroke: rgba(136, 131, 124, 0.32);
-  stroke-width: 12;
-}
-
-.spatial-lab-ring-segment,
-.spatial-lab-ring-portal-edge {
-  fill: none;
-  stroke-linecap: round;
-}
-
-.spatial-lab-ring-segment {
-  stroke-width: 16;
-}
-
-.spatial-lab-ring-segment.signal {
-  stroke: #d65f51;
-}
-
-.spatial-lab-ring-segment.paper {
-  stroke: rgba(242, 234, 220, 0.74);
-}
-
-.spatial-lab-ring-segment.metal {
-  stroke: rgba(136, 131, 124, 0.7);
-}
-
-.spatial-lab-ring-portal-edge {
-  stroke: rgba(214, 95, 81, 0.54);
-  stroke-width: 7;
+.spatial-lab-ring-geometry .ring-core {
+  filter: drop-shadow(0 0 calc(var(--ring-glow, 0) * 18px) rgba(214, 95, 81, 0.34));
 }
 
 .spatial-lab-product-geometry {
   height: 100%;
   position: relative;
-  transform: rotateX(58deg) rotateZ(-24deg);
   transform-style: preserve-3d;
   width: 100%;
 }
 
-.spatial-lab-product-shadow {
-  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.5), transparent 68%);
-  bottom: 1%;
-  height: 26%;
-  left: 11%;
-  position: absolute;
-  width: 78%;
-}
-
-.spatial-lab-product-rail,
-.spatial-lab-product-valve,
-.spatial-lab-product-head,
-.spatial-lab-product-hand {
-  background: linear-gradient(135deg, #b8aea0, #5f5b55);
-  border: 1px solid rgba(242, 234, 220, 0.24);
-  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.34);
-  position: absolute;
-}
-
-.spatial-lab-product-rail {
-  border-radius: 4px;
-  height: 68%;
-  left: 48%;
-  top: 14%;
-  width: 9%;
-}
-
-.spatial-lab-product-valve {
-  border-radius: 50%;
-  height: 25%;
-  left: 36%;
-  top: 47%;
-  width: 28%;
-}
-
-.spatial-lab-product-head {
-  border-radius: 5px;
-  height: 16%;
-  left: 43%;
-  top: 8%;
-  transform: skewX(-12deg);
-  width: 31%;
-}
-
-.spatial-lab-product-hand {
-  border-radius: 999px;
-  height: 8%;
-  left: 55%;
-  top: 71%;
-  transform: rotate(-20deg);
-  width: 30%;
+.spatial-lab-product-geometry .product-stage-shell {
+  color: rgba(184, 174, 160, 0.78);
+  height: 100%;
+  left: 50%;
+  top: 50%;
+  width: 100%;
 }
 
 .spatial-lab-action-path-geometry {

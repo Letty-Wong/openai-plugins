@@ -11,6 +11,9 @@ import {
   toggleReducedMotion
 } from "@/presentation/core/PresentationController";
 import type { BeatId } from "@/presentation/core/state-types";
+import { IntegrationRingGeometry } from "@/presentation/stage/IntegrationRing";
+import { ProductStage } from "@/presentation/stage/ProductStage";
+import { ActionPathGreybox } from "@/presentation/spatial-lab/ActionPathGreybox";
 import { PoseTransitionRuntime } from "@/presentation/spatial-lab/PoseTransitionRuntime";
 import type { SpatialLabMode } from "@/presentation/spatial-lab/SpatialLabStage";
 import {
@@ -143,13 +146,19 @@ function PersistentActors({ target }: { readonly target: StageTarget }) {
   return (
     <div className="spatial-lab-persistent-actors" data-owner="PersistentActors">
       {labActorIds.map((actorId) => (
-        <PersistentActor actor={target.actors[actorId]} key={actorId} />
+        <PersistentActor actor={target.actors[actorId]} key={actorId} target={target} />
       ))}
     </div>
   );
 }
 
-function PersistentActor({ actor }: { readonly actor: LabActorTarget }) {
+function PersistentActor({
+  actor,
+  target
+}: {
+  readonly actor: LabActorTarget;
+  readonly target: StageTarget;
+}) {
   return (
     <div
       className="spatial-lab-actor"
@@ -163,16 +172,22 @@ function PersistentActor({ actor }: { readonly actor: LabActorTarget }) {
       data-visible={String(actor.visible)}
       style={actorStyle(actor)}
     >
-      <ActorGeometry actor={actor} />
+      <ActorGeometry actor={actor} target={target} />
     </div>
   );
 }
 
-function ActorGeometry({ actor }: { readonly actor: LabActorTarget }) {
+function ActorGeometry({
+  actor,
+  target
+}: {
+  readonly actor: LabActorTarget;
+  readonly target: StageTarget;
+}) {
   if (actor.actorId === "actor.integration-ring") {
     return (
       <>
-        <IntegrationRingActor />
+        <IntegrationRingActor target={target} />
         <ActorDebugLabel actor={actor} />
       </>
     );
@@ -181,7 +196,9 @@ function ActorGeometry({ actor }: { readonly actor: LabActorTarget }) {
   if (actor.actorId === "actor.product-stage") {
     return (
       <>
-        <ProductStageActor />
+        <div className="spatial-lab-product-geometry" data-actor-geometry="product-stage">
+          <ProductStage renderState="silhouette" variant="route-anchor" />
+        </div>
         <ActorDebugLabel actor={actor} />
       </>
     );
@@ -190,7 +207,7 @@ function ActorGeometry({ actor }: { readonly actor: LabActorTarget }) {
   if (actor.actorId === "actor.action-path") {
     return (
       <>
-        <ActionPathActor />
+        <ActionPathGreybox />
         <ActorDebugLabel actor={actor} />
       </>
     );
@@ -199,54 +216,15 @@ function ActorGeometry({ actor }: { readonly actor: LabActorTarget }) {
   return <ActorDebugLabel actor={actor} />;
 }
 
-function IntegrationRingActor() {
+function IntegrationRingActor({ target }: { readonly target: StageTarget }) {
   return (
-    <svg
-      aria-hidden="true"
-      className="spatial-lab-ring-geometry"
-      data-actor-geometry="integration-ring"
-      viewBox="0 0 240 240"
-    >
-      <circle className="spatial-lab-ring-core" cx="120" cy="120" r="58" />
-      <circle className="spatial-lab-ring-track" cx="120" cy="120" r="92" pathLength="1" />
-      <path className="spatial-lab-ring-segment signal" d="M120 28 A92 92 0 0 1 212 120" />
-      <path className="spatial-lab-ring-segment paper" d="M205 151 A92 92 0 0 1 138 210" />
-      <path className="spatial-lab-ring-segment paper" d="M101 207 A92 92 0 0 1 34 140" />
-      <path className="spatial-lab-ring-segment metal" d="M29 105 A92 92 0 0 1 92 33" />
-      <path className="spatial-lab-ring-portal-edge" d="M88 120 A32 32 0 0 1 152 120" />
-    </svg>
-  );
-}
-
-function ProductStageActor() {
-  return (
-    <div
-      aria-hidden="true"
-      className="spatial-lab-product-geometry"
-      data-actor-geometry="product-stage"
-    >
-      <div className="spatial-lab-product-shadow" />
-      <div className="spatial-lab-product-rail" />
-      <div className="spatial-lab-product-valve" />
-      <div className="spatial-lab-product-head" />
-      <div className="spatial-lab-product-hand" />
-    </div>
-  );
-}
-
-function ActionPathActor() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="spatial-lab-action-path-geometry"
-      data-actor-geometry="action-path"
-      viewBox="0 0 320 150"
-    >
-      <path className="spatial-lab-action-path-line" d="M24 112 C82 42 144 116 204 62 S282 38 296 24" />
-      <circle className="spatial-lab-action-path-node" cx="24" cy="112" r="8" />
-      <circle className="spatial-lab-action-path-node signal" cx="204" cy="62" r="10" />
-      <circle className="spatial-lab-action-path-node" cx="296" cy="24" r="8" />
-    </svg>
+    <IntegrationRingGeometry
+      className="integration-ring spatial-lab-ring-geometry"
+      geometryId="integration-ring"
+      role={target.ring.role}
+      state={target.ring}
+      tone={target.sceneNumber >= 8 ? "ink" : "paper"}
+    />
   );
 }
 

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
+import { integrationRingSegmentIds } from "../src/presentation/stage/IntegrationRing";
 import { getStaticFrameKind } from "../src/presentation/stage/static-frames";
 
 test("WP-04 maps the four static keyframes", () => {
@@ -24,9 +25,10 @@ test("WP-04 style contracts exist", () => {
 
 test("WP-04 keeps one five-segment IntegrationRing identity", () => {
   const source = readFileSync("src/presentation/stage/IntegrationRing.tsx", "utf8");
-  const segmentMatches = source.match(/integration-ring-segment-/g) ?? [];
 
   assert.equal(source.includes("data-ring-role"), true);
-  assert.equal(segmentMatches.length, 1);
+  assert.equal(integrationRingSegmentIds.length, 5);
+  assert.equal(new Set(integrationRingSegmentIds).size, 5);
   assert.match(source, /segmentPaths = \[/);
+  assert.match(source, /export function IntegrationRingGeometry/);
 });

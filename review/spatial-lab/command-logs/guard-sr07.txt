@@ -1,7 +1,7 @@
 # SR-07 Start Guard
 
 - Allowed: `false`
-- Gate B decision: `PENDING_HUMAN_REVIEW`
+- Gate B decision: `INVALID_UNTIL_GATE_A_PASS`
 - Review doc ready: `true`
 - Missing command logs: `0`
 - Missing screenshots: `0`

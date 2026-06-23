@@ -18,12 +18,12 @@ export const ownershipRows = [
   {
     layer: "ScreenViewport",
     mustNotOwn: "camera transforms, actor pose, artifact pose",
-    owns: "viewport bounds, current beat id, route phase, transition id"
+    owns: "viewport bounds, perspective CSS variable, current beat id, route phase, transition id"
   },
   {
     layer: "WorldCamera",
     mustNotOwn: "actor lifecycle, actor role, artifact identity",
-    owns: "camera DOM layer and camera transform CSS variables"
+    owns: "camera DOM layer and current React camera transform seed until FIX-A2 removes pose double-writing"
   },
   {
     layer: "WorldSpace",
@@ -48,6 +48,6 @@ export const ownershipRows = [
   {
     layer: "PoseTransitionRuntime",
     mustNotOwn: "DOM creation, content text, actor identity",
-    owns: "animated writes to camera, actor, and artifact pose CSS variables"
+    owns: "animated writes to camera, actor, and artifact pose CSS variables; FIX-A2 must resolve React/Runtime pose ownership overlap"
   }
 ] as const;

@@ -1,0 +1,40 @@
+{
+  "name": "ai-presentation-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "audit:materials": "tsx scripts/material-placeholder-audit.ts",
+    "build": "next build",
+    "start": "next start",
+    "guard:wp38": "tsx scripts/guard-wp38-start.ts",
+    "lint": "eslint . --max-warnings=0",
+    "preflight:gate2": "tsx scripts/gate2-review-preflight.ts",
+    "review:gate2": "tsx scripts/gate2-review-manifest.ts",
+    "review:gate2:scaffold": "tsx scripts/gate2-evidence-scaffold.ts",
+    "review:gate2:logs": "tsx scripts/gate2-command-log-capture.ts",
+    "review:gate2:evidence": "tsx scripts/gate2-evidence-status.ts",
+    "review:gate2:checklist": "tsx scripts/gate2-human-evidence-checklist.ts",
+    "review:gate2:kit": "tsx scripts/gate2-review-kit.ts",
+    "status:gates": "tsx scripts/project-gate-status.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/**/*.test.{mjs,ts}"
+  },
+  "dependencies": {
+    "gsap": "^3.15.0",
+    "next": "^16.2.9",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.9.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^10.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.1"
+  }
+}

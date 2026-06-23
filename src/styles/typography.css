@@ -1,0 +1,42 @@
+body {
+  font-family:
+    "Arial Narrow",
+    Arial,
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif;
+}
+
+.kicker,
+.stage-marker,
+.structural-label,
+.chapter-nav,
+.control-row,
+.ring-label {
+  font-family:
+    "Arial Narrow",
+    Arial,
+    sans-serif;
+  letter-spacing: 0;
+}
+
+.display-title {
+  margin: 0;
+  font-size: clamp(56px, 10vw, 188px);
+  line-height: 0.9;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.display-title.compact {
+  font-size: clamp(44px, 7vw, 112px);
+  line-height: 0.96;
+}
+
+.support-line {
+  margin: 22px 0 0;
+  max-width: 680px;
+  color: var(--muted);
+  font-size: clamp(18px, 2vw, 28px);
+  line-height: 1.45;
+}

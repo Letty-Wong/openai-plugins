@@ -1,0 +1,18 @@
+# Gate 2 Review Preflight
+
+Overall status: `READY_FOR_HUMAN_REVIEW`
+
+| Status | Check | Detail |
+| --- | --- | --- |
+| PASS | Gate 2 is awaiting human review | Gate 2 decision is PENDING_HUMAN_REVIEW. |
+| PASS | WP-38 remains blocked before review | WP-38 is blocked. Gate 2 human review has not passed. |
+| PASS | Materials remain placeholders | 8 material placeholder checks passed. |
+| PASS | Human review package is the next action | Use docs/gate2-human-review-package.md for no-cut recording scripts. |
+| PASS | Decision record is ready | Record the final decision in docs/gate2-review-decision-record.md. |
+
+## What This Means
+
+- READY_FOR_HUMAN_REVIEW means the project is prepared for Gate 2 screenshots and no-cut recordings.
+- It does not mean Gate 2 has passed.
+- It does not authorize WP-38 implementation.
+- It does not open real product, CTA, QR, or business material gates.

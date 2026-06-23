@@ -1,0 +1,24 @@
+:root {
+  color-scheme: dark;
+  --void: #08090b;
+  --void-raised: #111318;
+  --paper: #f1eee6;
+  --paper-raised: #fbf8f2;
+  --ink: #111318;
+  --ink-soft: #35393f;
+  --ivory: #f1eee6;
+  --signal: #e63a2e;
+  --signal-hot: #ff584a;
+  --metal: #8d9299;
+  --chrome-light: #d8dadd;
+  --chrome-mid: #9da2a8;
+  --chrome-dark: #4a4e54;
+  --muted: #777c83;
+  --blocked: #403f42;
+  --glass: rgba(241, 238, 230, 0.08);
+  --line-light: rgba(241, 238, 230, 0.2);
+  --line-dark: rgba(17, 19, 24, 0.18);
+  --stage-safe-x: clamp(32px, 5vw, 96px);
+  --stage-safe-y: clamp(28px, 6.6vh, 72px);
+  --hud-width: 320px;
+}

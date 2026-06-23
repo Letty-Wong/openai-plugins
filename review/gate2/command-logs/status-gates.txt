@@ -1,0 +1,13 @@
+# Project Gate Status
+
+- Gate 2 decision: `PENDING_HUMAN_REVIEW`
+- WP-38 implementation: BLOCKED: Gate 2 human review has not passed.
+- Material gates: CLOSED: product assets, QR/CTA, and business facts remain blocked.
+- Allowed next action: Capture Gate 2 screenshots and no-cut recordings, then fill docs/gate2-review-decision-record.md.
+
+## Guardrails
+
+- Do not treat WP-38 candidate specs as implementation approval.
+- Do not use real product assets, real QR codes, or unapproved business facts.
+- Keep placeholders until the matching material gate is explicitly approved.
+- Keep presenter mode discrete; do not map scroll position to Beat state.

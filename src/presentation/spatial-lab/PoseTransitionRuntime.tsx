@@ -17,42 +17,58 @@ export function PoseTransitionRuntime({
   target
 }: PoseTransitionRuntimeProps) {
   const markerRef = useRef<HTMLDivElement>(null);
+  const runtimeRef = useRef<{
+    readonly context: gsap.Context;
+    readonly root: HTMLElement;
+  } | null>(null);
 
   useLayoutEffect(() => {
     const root = markerRef.current?.closest(".spatial-lab-root");
     if (!(root instanceof HTMLElement)) return;
 
+    const context = gsap.context(() => undefined, root);
+    runtimeRef.current = { context, root };
+
+    return () => {
+      const poseNodes = getPoseNodes(root);
+      gsap.killTweensOf(poseNodes);
+      context.revert();
+      runtimeRef.current = null;
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    const root = runtimeRef.current?.root;
+    if (!(root instanceof HTMLElement)) return;
+
+    const viewport = root.querySelector<HTMLElement>(".spatial-lab-viewport");
     const camera = root.querySelector<HTMLElement>(".spatial-lab-world-camera");
-    const poseNodes = [
-      camera,
-      ...Array.from(root.querySelectorAll<HTMLElement>(".spatial-lab-actor")),
-      ...Array.from(root.querySelectorAll<HTMLElement>(".spatial-lab-artifact"))
-    ].filter((node): node is HTMLElement => node instanceof HTMLElement);
+    const poseNodes = getPoseNodes(root);
 
     const duration = getDuration(target.movementKind, reducedMotion || target.reducedMotion);
-    const context = gsap.context(() => {
-      gsap.killTweensOf(poseNodes);
+    gsap.killTweensOf(poseNodes);
 
-      if (camera) {
-        tweenOrSet(camera, cameraVars(target), duration);
-      }
+    if (viewport) {
+      tweenOrSet(viewport, viewportVars(target), duration);
+    }
 
-      Object.values(target.actors).forEach((actor) => {
-        const node = root.querySelector<HTMLElement>(
-          `.spatial-lab-actor[data-stage-actor-id="${actor.actorId}"]`
-        );
-        if (node) tweenOrSet(node, actorVars(actor), duration);
-      });
+    if (camera) {
+      tweenOrSet(camera, cameraVars(target), duration);
+    }
 
-      Object.values(target.artifacts).forEach((artifact) => {
-        const node = root.querySelector<HTMLElement>(
-          `.spatial-lab-artifact[data-artifact-id="${artifact.artifactId}"]`
-        );
-        if (node) tweenOrSet(node, artifactVars(artifact), duration);
-      });
-    }, root);
+    Object.values(target.actors).forEach((actor) => {
+      const node = root.querySelector<HTMLElement>(
+        `.spatial-lab-actor[data-stage-actor-id="${actor.actorId}"]`
+      );
+      if (node) tweenOrSet(node, actorVars(actor), duration);
+    });
 
-    return () => context.revert();
+    Object.values(target.artifacts).forEach((artifact) => {
+      const node = root.querySelector<HTMLElement>(
+        `.spatial-lab-artifact[data-artifact-id="${artifact.artifactId}"]`
+      );
+      if (node) tweenOrSet(node, artifactVars(artifact), duration);
+    });
   }, [reducedMotion, target]);
 
   return (
@@ -66,6 +82,18 @@ export function PoseTransitionRuntime({
       ref={markerRef}
     />
   );
+}
+
+function getPoseNodes(root: HTMLElement) {
+  const viewport = root.querySelector<HTMLElement>(".spatial-lab-viewport");
+  const camera = root.querySelector<HTMLElement>(".spatial-lab-world-camera");
+
+  return [
+    viewport,
+    camera,
+    ...Array.from(root.querySelectorAll<HTMLElement>(".spatial-lab-actor")),
+    ...Array.from(root.querySelectorAll<HTMLElement>(".spatial-lab-artifact"))
+  ].filter((node): node is HTMLElement => node instanceof HTMLElement);
 }
 
 function tweenOrSet(
@@ -94,9 +122,14 @@ function getDuration(movementKind: StageTarget["movementKind"], reducedMotion: b
   return 0;
 }
 
+function viewportVars(target: StageTarget): Record<string, string | number> {
+  return {
+    "--lab-camera-perspective": `${target.camera.perspective}px`
+  };
+}
+
 function cameraVars(target: StageTarget): Record<string, string | number> {
   return {
-    "--lab-camera-perspective": `${target.camera.perspective}px`,
     "--lab-camera-rotate-x": `${target.camera.rotationX}deg`,
     "--lab-camera-rotate-y": `${target.camera.rotationY}deg`,
     "--lab-camera-rotate-z": `${target.camera.rotationZ}deg`,

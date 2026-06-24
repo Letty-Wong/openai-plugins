@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { beatById } from "@/content/beats";
 import {
   createInitialPresentationState,
@@ -10,6 +10,7 @@ import {
   previousBeat,
   toggleReducedMotion
 } from "@/presentation/core/PresentationController";
+import { reduceKeyboardShortcut } from "@/presentation/core/keyboard";
 import type { BeatId } from "@/presentation/core/state-types";
 import { IntegrationRingGeometry } from "@/presentation/stage/IntegrationRing";
 import { ProductStage } from "@/presentation/stage/ProductStage";
@@ -48,6 +49,63 @@ export function SpatialLabClientStage({
     () => resolveStageTarget(state.currentBeatId, { reducedMotion: state.reducedMotion }),
     [state.currentBeatId, state.reducedMotion]
   );
+  const initialTargetRef = useRef(target);
+  const wheelCueRef = useRef({
+    deltaY: 0,
+    frame: 0,
+    lastCueAt: 0
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const nextState = reduceKeyboardShortcut(state, event);
+      if (nextState !== state) {
+        event.preventDefault();
+        setState(nextState);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [state]);
+
+  useEffect(() => {
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      wheelCueRef.current.deltaY += event.deltaY;
+
+      if (wheelCueRef.current.frame) return;
+
+      wheelCueRef.current.frame = window.requestAnimationFrame(() => {
+        wheelCueRef.current.frame = 0;
+
+        const now = window.performance.now();
+        const deltaY = wheelCueRef.current.deltaY;
+        const threshold = 86;
+        const cooldownMs = 340;
+
+        if (Math.abs(deltaY) < threshold) return;
+
+        if (now - wheelCueRef.current.lastCueAt < cooldownMs) {
+          wheelCueRef.current.deltaY = 0;
+          return;
+        }
+
+        wheelCueRef.current.deltaY = 0;
+        wheelCueRef.current.lastCueAt = now;
+        setState((current) => (deltaY > 0 ? nextBeat(current) : previousBeat(current)));
+      });
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      if (wheelCueRef.current.frame) {
+        window.cancelAnimationFrame(wheelCueRef.current.frame);
+      }
+    };
+  }, []);
 
   return (
     <main
@@ -70,13 +128,13 @@ export function SpatialLabClientStage({
         data-route-phase={target.routePhase}
         data-spatial-transition-gate={target.transition?.gate ?? "none"}
         data-spatial-transition-id={target.transition?.id ?? "none"}
-        style={viewportStyle(target)}
+        style={initialViewportStyle(initialTargetRef.current)}
       >
-        <WorldCamera target={target}>
+        <WorldCamera initialTarget={initialTargetRef.current} target={target}>
           <WorldSpace>
             <WorldAtmosphere target={target} />
-            <PersistentActors target={target} />
-            <ArtifactSystem target={target} />
+            <PersistentActors initialTarget={initialTargetRef.current} target={target} />
+            <ArtifactSystem initialTarget={initialTargetRef.current} target={target} />
             <WorldTypography target={target} />
           </WorldSpace>
         </WorldCamera>
@@ -102,9 +160,11 @@ export function SpatialLabClientStage({
 
 function WorldCamera({
   children,
+  initialTarget,
   target
 }: {
   readonly children: React.ReactNode;
+  readonly initialTarget: StageTarget;
   readonly target: StageTarget;
 }) {
   return (
@@ -116,7 +176,7 @@ function WorldCamera({
       data-owner="WorldCamera"
       data-ring-gap={target.ring.gap}
       data-ring-role={target.ring.role}
-      style={cameraStyle(target)}
+      style={initialCameraStyle(initialTarget)}
     >
       {children}
     </div>
@@ -142,11 +202,22 @@ function WorldAtmosphere({ target }: { readonly target: StageTarget }) {
   );
 }
 
-function PersistentActors({ target }: { readonly target: StageTarget }) {
+function PersistentActors({
+  initialTarget,
+  target
+}: {
+  readonly initialTarget: StageTarget;
+  readonly target: StageTarget;
+}) {
   return (
     <div className="spatial-lab-persistent-actors" data-owner="PersistentActors">
       {labActorIds.map((actorId) => (
-        <PersistentActor actor={target.actors[actorId]} key={actorId} target={target} />
+        <PersistentActor
+          actor={target.actors[actorId]}
+          initialActor={initialTarget.actors[actorId]}
+          key={actorId}
+          target={target}
+        />
       ))}
     </div>
   );
@@ -154,9 +225,11 @@ function PersistentActors({ target }: { readonly target: StageTarget }) {
 
 function PersistentActor({
   actor,
+  initialActor,
   target
 }: {
   readonly actor: LabActorTarget;
+  readonly initialActor: LabActorTarget;
   readonly target: StageTarget;
 }) {
   return (
@@ -170,7 +243,7 @@ function PersistentActor({
       data-stage-actor-id={actor.actorId}
       data-target-pose-id={actor.poseId}
       data-visible={String(actor.visible)}
-      style={actorStyle(actor)}
+      style={initialActorStyle(initialActor)}
     >
       <ActorGeometry actor={actor} target={target} />
     </div>
@@ -223,7 +296,7 @@ function IntegrationRingActor({ target }: { readonly target: StageTarget }) {
       geometryId="integration-ring"
       role={target.ring.role}
       state={target.ring}
-      tone={target.sceneNumber >= 8 ? "ink" : "paper"}
+      tone="paper"
     />
   );
 }
@@ -238,17 +311,33 @@ function ActorDebugLabel({ actor }: { readonly actor: LabActorTarget }) {
   );
 }
 
-function ArtifactSystem({ target }: { readonly target: StageTarget }) {
+function ArtifactSystem({
+  initialTarget,
+  target
+}: {
+  readonly initialTarget: StageTarget;
+  readonly target: StageTarget;
+}) {
   return (
     <div className="spatial-lab-artifact-system" data-owner="ArtifactSystem">
       {labArtifactIds.map((artifactId) => (
-        <ArtifactBlock artifact={target.artifacts[artifactId]} key={artifactId} />
+        <ArtifactBlock
+          artifact={target.artifacts[artifactId]}
+          initialArtifact={initialTarget.artifacts[artifactId]}
+          key={artifactId}
+        />
       ))}
     </div>
   );
 }
 
-function ArtifactBlock({ artifact }: { readonly artifact: LabArtifactTarget }) {
+function ArtifactBlock({
+  artifact,
+  initialArtifact
+}: {
+  readonly artifact: LabArtifactTarget;
+  readonly initialArtifact: LabArtifactTarget;
+}) {
   return (
     <div
       className="spatial-lab-artifact"
@@ -257,7 +346,7 @@ function ArtifactBlock({ artifact }: { readonly artifact: LabArtifactTarget }) {
       data-lifecycle-phase={artifact.lifecycle}
       data-owner="ArtifactSystem"
       data-visible={String(artifact.visible)}
-      style={artifactStyle(artifact)}
+      style={initialArtifactStyle(initialArtifact)}
     >
       <span>{artifact.artifactId}</span>
       <strong>{artifact.mode}</strong>
@@ -355,13 +444,13 @@ function LabControls({
   );
 }
 
-function viewportStyle(target: StageTarget): CSSProperties {
+function initialViewportStyle(target: StageTarget): CSSProperties {
   return {
     "--lab-camera-perspective": `${target.camera.perspective}px`
   } as CSSProperties;
 }
 
-function cameraStyle(target: StageTarget): CSSProperties {
+function initialCameraStyle(target: StageTarget): CSSProperties {
   return {
     "--lab-camera-rotate-x": `${target.camera.rotationX}deg`,
     "--lab-camera-rotate-y": `${target.camera.rotationY}deg`,
@@ -401,7 +490,7 @@ function ContractPanel() {
   );
 }
 
-function actorStyle(actor: LabActorTarget): CSSProperties {
+function initialActorStyle(actor: LabActorTarget): CSSProperties {
   return {
     "--lab-actor-opacity": actor.opacity,
     "--lab-actor-rotate-x": `${actor.rotateX}deg`,
@@ -414,7 +503,7 @@ function actorStyle(actor: LabActorTarget): CSSProperties {
   } as CSSProperties;
 }
 
-function artifactStyle(artifact: LabArtifactTarget): CSSProperties {
+function initialArtifactStyle(artifact: LabArtifactTarget): CSSProperties {
   return {
     "--lab-artifact-opacity": artifact.opacity,
     "--lab-artifact-scale": artifact.scale,

@@ -18,12 +18,12 @@ export const ownershipRows = [
   {
     layer: "ScreenViewport",
     mustNotOwn: "camera transforms, actor pose, artifact pose",
-    owns: "viewport bounds, perspective CSS variable, current beat id, route phase, transition id"
+    owns: "viewport bounds, perspective CSS variable storage, current beat id, route phase, transition id"
   },
   {
     layer: "WorldCamera",
     mustNotOwn: "actor lifecycle, actor role, artifact identity",
-    owns: "camera DOM layer and current React camera transform seed until FIX-A2 removes pose double-writing"
+    owns: "camera DOM layer and camera transform CSS variable storage"
   },
   {
     layer: "WorldSpace",
@@ -33,12 +33,12 @@ export const ownershipRows = [
   {
     layer: "PersistentActors",
     mustNotOwn: "camera transform, viewport state, artifact ids",
-    owns: "stable actor DOM ids, lifecycle phase, role, target pose attributes"
+    owns: "stable actor DOM ids, actor pose CSS variable storage, lifecycle phase, role, target pose attributes"
   },
   {
     layer: "ArtifactSystem",
     mustNotOwn: "actor ids, camera transform, screen copy",
-    owns: "stable artifact ids, artifact mode, artifact target pose attributes"
+    owns: "stable artifact ids, artifact pose CSS variable storage, artifact mode, artifact target pose attributes"
   },
   {
     layer: "ScreenCopyLayer",
@@ -48,6 +48,6 @@ export const ownershipRows = [
   {
     layer: "PoseTransitionRuntime",
     mustNotOwn: "DOM creation, content text, actor identity",
-    owns: "animated writes to camera, actor, and artifact pose CSS variables; FIX-A2 must resolve React/Runtime pose ownership overlap"
+    owns: "only post-seed writes to perspective, camera, actor, and artifact pose CSS variables"
   }
 ] as const;

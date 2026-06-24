@@ -75,7 +75,7 @@ test("WP-53 FIX-A1 assigns perspective to ScreenViewport and exposes review/debu
   assert.match(pageSource, /toValidMode/);
   assert.match(stageSource, /SpatialLabMode = "review" \| "debug"/);
   assert.match(labSource, /data-lab-mode=\{mode\}/);
-  assert.match(labSource, /style=\{viewportStyle\(target\)\}/);
+  assert.match(labSource, /style=\{initialViewportStyle\(initialTargetRef\.current\)\}/);
   assert.match(labSource, /"--lab-camera-perspective": `\$\{target\.camera\.perspective\}px`/);
   assert.match(styleSource, /\.spatial-lab-root\[data-lab-mode="review"\]/);
   assert.match(styleSource, /\.spatial-lab-root\[data-lab-mode="debug"\]/);
@@ -92,12 +92,12 @@ test("WP-53 FIX-A1.1 keeps geometry actors transparent even when lead", () => {
   assert.match(styleSource, /border: 0/);
 });
 
-test("WP-53 FIX-A1 does not edit StageTarget or PoseTransitionRuntime for transition behavior", () => {
+test("WP-53 FIX-A1 does not edit StageTarget for transition behavior", () => {
   const runtimeSource = readFileSync("src/presentation/spatial-lab/PoseTransitionRuntime.tsx", "utf8");
   const targetSource = readFileSync("src/presentation/spatial-lab/stage-target.ts", "utf8");
 
-  assert.match(runtimeSource, /return \(\) => context\.revert\(\)/);
   assert.match(runtimeSource, /overwrite: "auto"/);
+  assert.doesNotMatch(runtimeSource, /fromTo/);
   assert.match(targetSource, /getCameraPoseForBeat/);
   assert.match(targetSource, /getSpatialPoseForActor/);
   assert.doesNotMatch(targetSource, /IntegrationRingActor/);

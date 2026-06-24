@@ -92,14 +92,15 @@ test("WP-53 FIX-A1.1 keeps geometry actors transparent even when lead", () => {
   assert.match(styleSource, /border: 0/);
 });
 
-test("WP-53 FIX-A1 does not edit StageTarget for transition behavior", () => {
+test("WP-53 FIX-A1.1 keeps runtime scoped and FIX-A3 owns StageTarget independence", () => {
   const runtimeSource = readFileSync("src/presentation/spatial-lab/PoseTransitionRuntime.tsx", "utf8");
   const targetSource = readFileSync("src/presentation/spatial-lab/stage-target.ts", "utf8");
 
   assert.match(runtimeSource, /overwrite: "auto"/);
   assert.doesNotMatch(runtimeSource, /fromTo/);
-  assert.match(targetSource, /getCameraPoseForBeat/);
-  assert.match(targetSource, /getSpatialPoseForActor/);
-  assert.doesNotMatch(targetSource, /IntegrationRingActor/);
+  assert.doesNotMatch(targetSource, /getCameraPoseForBeat/);
+  assert.doesNotMatch(targetSource, /getSpatialPoseForActor/);
+  assert.doesNotMatch(targetSource, /getRoutePhaseForScene/);
+  assert.doesNotMatch(targetSource, /function IntegrationRingActor/);
   assert.doesNotMatch(runtimeSource, /IntegrationRingActor/);
 });

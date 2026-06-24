@@ -18,7 +18,6 @@ export function PoseTransitionRuntime({
 }: PoseTransitionRuntimeProps) {
   const markerRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<{
-    readonly context: gsap.Context;
     readonly root: HTMLElement;
   } | null>(null);
 
@@ -26,13 +25,11 @@ export function PoseTransitionRuntime({
     const root = markerRef.current?.closest(".spatial-lab-root");
     if (!(root instanceof HTMLElement)) return;
 
-    const context = gsap.context(() => undefined, root);
-    runtimeRef.current = { context, root };
+    runtimeRef.current = { root };
 
     return () => {
       const poseNodes = getPoseNodes(root);
       gsap.killTweensOf(poseNodes);
-      context.revert();
       runtimeRef.current = null;
     };
   }, []);

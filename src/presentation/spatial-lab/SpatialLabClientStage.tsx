@@ -23,6 +23,7 @@ import {
   resolveStageTarget
 } from "@/presentation/spatial-lab/stage-target";
 import type {
+  IntegrationRingActorTarget,
   LabActorTarget,
   LabArtifactTarget,
   StageTarget
@@ -45,6 +46,8 @@ export function SpatialLabClientStage({
 }: SpatialLabClientStageProps) {
   const [state, setState] = useState(() => createInitialPresentationState(initialBeatId));
   const [mode, setMode] = useState<SpatialLabMode>(initialMode);
+  const viewportRef = useRef<HTMLElement | null>(null);
+  const modeRef = useRef(mode);
   const target = useMemo(
     () => resolveStageTarget(state.currentBeatId, { reducedMotion: state.reducedMotion }),
     [state.currentBeatId, state.reducedMotion]
@@ -53,26 +56,44 @@ export function SpatialLabClientStage({
   const wheelCueRef = useRef({
     deltaY: 0,
     frame: 0,
+    idleTimer: 0,
     lastCueAt: 0
   });
 
   useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      const nextState = reduceKeyboardShortcut(state, event);
-      if (nextState !== state) {
-        event.preventDefault();
-        setState(nextState);
-      }
+      if (isEditableEventTarget(event.target)) return;
+
+      setState((current) => {
+        const nextState = reduceKeyboardShortcut(current, event);
+        if (nextState !== current) {
+          event.preventDefault();
+        }
+        return nextState;
+      });
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [state]);
+  }, []);
 
   useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!(viewport instanceof HTMLElement)) return;
+
     const handleWheel = (event: WheelEvent) => {
+      if (modeRef.current !== "review") return;
+
       event.preventDefault();
       wheelCueRef.current.deltaY += event.deltaY;
+      window.clearTimeout(wheelCueRef.current.idleTimer);
+      wheelCueRef.current.idleTimer = window.setTimeout(() => {
+        wheelCueRef.current.deltaY = 0;
+      }, 150);
 
       if (wheelCueRef.current.frame) return;
 
@@ -97,13 +118,14 @@ export function SpatialLabClientStage({
       });
     };
 
-    window.addEventListener("wheel", handleWheel, { passive: false });
+    viewport.addEventListener("wheel", handleWheel, { passive: false });
 
     return () => {
-      window.removeEventListener("wheel", handleWheel);
+      viewport.removeEventListener("wheel", handleWheel);
       if (wheelCueRef.current.frame) {
         window.cancelAnimationFrame(wheelCueRef.current.frame);
       }
+      window.clearTimeout(wheelCueRef.current.idleTimer);
     };
   }, []);
 
@@ -124,10 +146,13 @@ export function SpatialLabClientStage({
         className="spatial-lab-viewport"
         data-beat-movement-kind={target.movementKind}
         data-current-beat-id={target.beatId}
+        data-world-lighting-mode={target.world.lightingMode}
+        data-world-tone={target.world.tone}
         data-owner="ScreenViewport"
         data-route-phase={target.routePhase}
         data-spatial-transition-gate={target.transition?.gate ?? "none"}
         data-spatial-transition-id={target.transition?.id ?? "none"}
+        ref={viewportRef}
         style={initialViewportStyle(initialTargetRef.current)}
       >
         <WorldCamera initialTarget={initialTargetRef.current} target={target}>
@@ -174,8 +199,8 @@ function WorldCamera({
       data-camera-focus-actor-id={target.camera.focusActorId ?? "none"}
       data-camera-pose-id={target.camera.poseId}
       data-owner="WorldCamera"
-      data-ring-gap={target.ring.gap}
-      data-ring-role={target.ring.role}
+      data-ring-gap={target.actors["actor.integration-ring"].geometry.gap}
+      data-ring-role={target.actors["actor.integration-ring"].geometry.role}
       style={initialCameraStyle(initialTarget)}
     >
       {children}
@@ -260,7 +285,7 @@ function ActorGeometry({
   if (actor.actorId === "actor.integration-ring") {
     return (
       <>
-        <IntegrationRingActor target={target} />
+        <IntegrationRingActor actor={actor as IntegrationRingActorTarget} target={target} />
         <ActorDebugLabel actor={actor} />
       </>
     );
@@ -289,14 +314,20 @@ function ActorGeometry({
   return <ActorDebugLabel actor={actor} />;
 }
 
-function IntegrationRingActor({ target }: { readonly target: StageTarget }) {
+function IntegrationRingActor({
+  actor,
+  target
+}: {
+  readonly actor: IntegrationRingActorTarget;
+  readonly target: StageTarget;
+}) {
   return (
     <IntegrationRingGeometry
       className="integration-ring spatial-lab-ring-geometry"
       geometryId="integration-ring"
-      role={target.ring.role}
-      state={target.ring}
-      tone="paper"
+      role={actor.geometry.role}
+      state={actor.geometry}
+      tone={target.world.tone === "dark" ? "paper" : "ink"}
     />
   );
 }
@@ -357,7 +388,7 @@ function ArtifactBlock({
 function WorldTypography({ target }: { readonly target: StageTarget }) {
   return (
     <div className="spatial-lab-world-typography" data-owner="WorldTypography">
-      <span>{target.ring.role}</span>
+      <span>{target.actors["actor.integration-ring"].geometry.role}</span>
       <strong>{target.copy.headline}</strong>
     </div>
   );
@@ -448,6 +479,12 @@ function initialViewportStyle(target: StageTarget): CSSProperties {
   return {
     "--lab-camera-perspective": `${target.camera.perspective}px`
   } as CSSProperties;
+}
+
+function isEditableEventTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  return ["BUTTON", "INPUT", "SELECT", "TEXTAREA"].includes(target.tagName);
 }
 
 function initialCameraStyle(target: StageTarget): CSSProperties {

@@ -62,7 +62,7 @@ test("WP-49 resolves a complete StageTarget from any checked beat without click 
 
   assert.equal(target.beatId, "16.1");
   assert.equal(target.movementKind, "spatial");
-  assert.equal(target.camera.poseId, "camera.portal-forward-safety");
+  assert.equal(target.camera.poseId, "camera.lab.safety-forward");
   assert.equal(target.actors["actor.integration-ring"].actorId, "actor.integration-ring");
   assert.equal(target.actors["actor.product-stage"].actorId, "actor.product-stage");
   assert.equal(target.artifacts["artifact.F01"].artifactId, "artifact.F01");
@@ -94,40 +94,42 @@ test("WP-50 spatial lab has one pose runtime and no generic fromTo entrance mode
 test("WP-51 SR-04 keeps the ring anchor and product actor identity through 08 to 09", () => {
   const beforeTurn = resolveStageTarget("08.7");
   const turn = resolveStageTarget("09.1");
+  const turnRing = turn.actors["actor.integration-ring"];
 
   assert.equal(turn.transition?.gate, "SR-04");
-  assert.equal(turn.camera.poseId, "camera.turn-horizontal-product");
+  assert.equal(turn.transition.acceptanceFocus[0], "Metadata only until Gate A passes");
   assert.equal(beforeTurn.actors["actor.product-stage"].actorId, turn.actors["actor.product-stage"].actorId);
   assert.equal(turn.actors["actor.product-stage"].visible, true);
   assert.equal(turn.actors["actor.integration-ring"].visible, true);
   assert.ok(turn.actors["actor.integration-ring"].opacity > 0.9);
-  assert.equal(turn.ring.role, "product-gate-turn");
+  assert.equal(turnRing.geometry.role, "product-gate");
+  assert.equal(turnRing.geometry.segmentProgress.length, 5);
 });
 
-test("WP-51 SR-05 builds a forward portal with layered artifacts and retained product world", () => {
+test("WP-51 SR-05 keeps metadata only until Gate A validates the spatial model", () => {
   const freeze = resolveStageTarget("15.8");
   const portal = resolveStageTarget("16.1");
   const artifactDepths = Object.values(portal.artifacts).map((artifact) => artifact.z);
 
   assert.equal(portal.transition?.gate, "SR-05");
-  assert.equal(portal.camera.poseId, "camera.portal-forward-safety");
+  assert.equal(portal.transition.acceptanceFocus[0], "Metadata only until Gate A passes");
   assert.equal(freeze.actors["actor.product-stage"].actorId, portal.actors["actor.product-stage"].actorId);
   assert.ok(portal.actors["actor.product-stage"].opacity > 0.5);
-  assert.equal(portal.ring.role, "portal-to-safety-boundary");
-  assert.ok(Math.max(...artifactDepths) - Math.min(...artifactDepths) >= 300);
+  assert.equal(portal.actors["actor.integration-ring"].geometry.role, "safety-boundary");
+  assert.ok(Math.max(...artifactDepths) - Math.min(...artifactDepths) < 300);
   assert.ok(portal.camera.scale < 2);
 });
 
-test("WP-51 SR-06 keeps ActionPath identity while dollying back to the final loop", () => {
+test("WP-51 SR-06 keeps ActionPath identity with metadata-only final loop endpoint", () => {
   const route = resolveStageTarget("20.10");
   const finale = resolveStageTarget("21.1");
 
   assert.equal(finale.transition?.gate, "SR-06");
-  assert.equal(finale.camera.poseId, "camera.dolly-back-finale");
+  assert.equal(finale.transition.acceptanceFocus[0], "Metadata only until Gate A passes");
   assert.equal(route.actors["actor.action-path"].actorId, finale.actors["actor.action-path"].actorId);
   assert.equal(finale.actors["actor.action-path"].visible, true);
-  assert.equal(finale.ring.gap, 0);
-  assert.equal(finale.ring.role, "final-loop-reveal");
+  assert.equal(finale.actors["actor.integration-ring"].geometry.gap, 0);
+  assert.equal(finale.actors["actor.integration-ring"].geometry.role, "final-loop");
   assert.equal(finale.product.placeholderOnly, true);
   assert.equal(finale.actors["actor.cta-dock"].visible, true);
 });

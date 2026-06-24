@@ -261,6 +261,7 @@ function PersistentActor({
     <div
       className="spatial-lab-actor"
       data-actor-role={actor.role}
+      data-camera-presence={actor.cameraPresence}
       data-lifecycle-phase={actor.lifecycle}
       data-owner="PersistentActors"
       data-spatial-function={actor.functionRole}
@@ -311,6 +312,24 @@ function ActorGeometry({
     );
   }
 
+  if (actor.actorId === "actor.judgement-question") {
+    return (
+      <>
+        <JudgementQuestionGreybox beatId={target.beatId} />
+        <ActorDebugLabel actor={actor} />
+      </>
+    );
+  }
+
+  if (actor.actorId === "actor.ledger-dial") {
+    return (
+      <>
+        <LedgerDialGreybox />
+        <ActorDebugLabel actor={actor} />
+      </>
+    );
+  }
+
   return <ActorDebugLabel actor={actor} />;
 }
 
@@ -339,6 +358,51 @@ function ActorDebugLabel({ actor }: { readonly actor: LabActorTarget }) {
       <strong>{actor.role}</strong>
       <small>{actor.poseId}</small>
     </span>
+  );
+}
+
+function JudgementQuestionGreybox({ beatId }: { readonly beatId: BeatId }) {
+  const variant = beatId.startsWith("03.")
+    ? "trend"
+    : beatId === "04.7"
+      ? "gap"
+      : "judgement";
+
+  if (variant === "trend") {
+    return <TrendTrackGreybox />;
+  }
+
+  return (
+    <div className="spatial-lab-judgement-geometry" data-actor-geometry={`judgement-${variant}`}>
+      <div className="spatial-lab-judgement-orbit" />
+      <div className="spatial-lab-judgement-core" />
+      <div className="spatial-lab-judgement-branch branch-a" />
+      <div className="spatial-lab-judgement-branch branch-b" />
+    </div>
+  );
+}
+
+function TrendTrackGreybox() {
+  return (
+    <div className="spatial-lab-trend-geometry" data-actor-geometry="trend-track">
+      <span />
+      <span />
+      <span />
+      <span />
+    </div>
+  );
+}
+
+function LedgerDialGreybox() {
+  return (
+    <div className="spatial-lab-ledger-geometry" data-actor-geometry="ledger-dial">
+      <span className="ledger-axis horizontal" />
+      <span className="ledger-axis vertical" />
+      <span className="ledger-quadrant q1" />
+      <span className="ledger-quadrant q2" />
+      <span className="ledger-quadrant q3" />
+      <span className="ledger-quadrant q4" />
+    </div>
   );
 }
 
@@ -374,6 +438,7 @@ function ArtifactBlock({
       className="spatial-lab-artifact"
       data-artifact-id={artifact.artifactId}
       data-artifact-mode={artifact.mode}
+      data-camera-presence={artifact.cameraPresence}
       data-lifecycle-phase={artifact.lifecycle}
       data-owner="ArtifactSystem"
       data-visible={String(artifact.visible)}
@@ -398,7 +463,6 @@ function ScreenCopyLayer({ target }: { readonly target: StageTarget }) {
   return (
     <aside className="spatial-lab-screen-copy" data-owner="ScreenCopyLayer">
       <p>{target.copy.eyebrow}</p>
-      <h2>{target.copy.headline}</h2>
       <span>{target.copy.support}</span>
       <small>{target.copy.caption}</small>
     </aside>

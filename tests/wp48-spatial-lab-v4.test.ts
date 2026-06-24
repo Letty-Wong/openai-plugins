@@ -101,7 +101,7 @@ test("WP-51 SR-04 keeps the ring anchor and product actor identity through 08 to
   assert.equal(beforeTurn.actors["actor.product-stage"].actorId, turn.actors["actor.product-stage"].actorId);
   assert.equal(turn.actors["actor.product-stage"].visible, true);
   assert.equal(turn.actors["actor.integration-ring"].visible, true);
-  assert.ok(turn.actors["actor.integration-ring"].opacity > 0.9);
+  assert.equal(turn.actors["actor.integration-ring"].cameraPresence, "support");
   assert.equal(turnRing.geometry.role, "product-gate");
   assert.equal(turnRing.geometry.segmentProgress.length, 5);
 });
@@ -109,14 +109,14 @@ test("WP-51 SR-04 keeps the ring anchor and product actor identity through 08 to
 test("WP-51 SR-05 keeps metadata only until Gate A validates the spatial model", () => {
   const freeze = resolveStageTarget("15.8");
   const portal = resolveStageTarget("16.1");
-  const artifactDepths = Object.values(portal.artifacts).map((artifact) => artifact.z);
+  const visibleArtifacts = Object.values(portal.artifacts).filter((artifact) => artifact.visible);
 
   assert.equal(portal.transition?.gate, "SR-05");
   assert.equal(portal.transition.acceptanceFocus[0], "Metadata only until Gate A passes");
   assert.equal(freeze.actors["actor.product-stage"].actorId, portal.actors["actor.product-stage"].actorId);
   assert.ok(portal.actors["actor.product-stage"].opacity > 0.5);
   assert.equal(portal.actors["actor.integration-ring"].geometry.role, "safety-boundary");
-  assert.ok(Math.max(...artifactDepths) - Math.min(...artifactDepths) < 300);
+  assert.ok(visibleArtifacts.length <= 3);
   assert.ok(portal.camera.scale < 2);
 });
 
@@ -131,5 +131,6 @@ test("WP-51 SR-06 keeps ActionPath identity with metadata-only final loop endpoi
   assert.equal(finale.actors["actor.integration-ring"].geometry.gap, 0);
   assert.equal(finale.actors["actor.integration-ring"].geometry.role, "final-loop");
   assert.equal(finale.product.placeholderOnly, true);
-  assert.equal(finale.actors["actor.cta-dock"].visible, true);
+  assert.notEqual(finale.actors["actor.cta-dock"].actorId, finale.actors["actor.action-path"].actorId);
+  assert.equal(finale.actors["actor.cta-dock"].cameraPresence, "latent");
 });

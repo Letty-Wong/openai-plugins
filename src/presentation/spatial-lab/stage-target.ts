@@ -30,6 +30,7 @@ export type LabArtifactMode =
 export type LabTransitionGate = "SR-04" | "SR-05" | "SR-06";
 
 export type LabWorldTone = "dark" | "paper";
+export type CameraPresence = "featured" | "support" | "ambient" | "latent" | "offscreen";
 
 export type LabWorldTarget = {
   readonly lightingMode: "judgement" | "ledger" | "product" | "safety" | "action" | "finale";
@@ -54,6 +55,7 @@ export type RingGeometryTarget = {
 
 export type LabActorTarget = {
   readonly actorId: StageActorId;
+  readonly cameraPresence: CameraPresence;
   readonly functionRole: string;
   readonly lifecycle: ActorLifecyclePhase;
   readonly occlusion: SpatialOcclusion;
@@ -80,6 +82,7 @@ export type LabActorTargets = Readonly<Record<StageActorId, LabActorTarget>> & {
 
 export type LabArtifactTarget = {
   readonly artifactId: LabArtifactId;
+  readonly cameraPresence: CameraPresence;
   readonly lifecycle: ActorLifecyclePhase;
   readonly mode: LabArtifactMode;
   readonly opacity: number;
@@ -156,6 +159,9 @@ export const labArtifactIds = [
 
 const spatialBeatIds = [
   "01.1",
+  "02.1",
+  "03.1",
+  "04.7",
   "05.1",
   "08.7",
   "09.1",
@@ -179,7 +185,6 @@ const actorBeatIds = [
   "03.5",
   "03.7",
   "04.2",
-  "04.7",
   "05.2",
   "06.1",
   "06.6",
@@ -262,6 +267,191 @@ const transitionMetadataByBeatId: Readonly<Partial<Record<BeatId, LabTransitionT
   }
 };
 
+type ProofActorPatch = Partial<Record<StageActorId, Partial<PoseSeed> & {
+  readonly cameraPresence?: CameraPresence;
+}>>;
+
+type ProofTarget = {
+  readonly actorPatches: ProofActorPatch;
+  readonly camera: LabCameraTarget;
+  readonly ringGeometry: RingGeometryTarget;
+  readonly world: LabWorldTarget;
+};
+
+const fixA4ProofBeatIds = ["01.1", "02.1", "03.1", "04.7", "05.1", "08.7"] as const satisfies readonly BeatId[];
+const fixA4ProofBeatIdSet = new Set<BeatId>(fixA4ProofBeatIds);
+
+const fixA4ProofTargets: Readonly<Record<(typeof fixA4ProofBeatIds)[number], ProofTarget>> = {
+  "01.1": {
+    actorPatches: {
+      "actor.integration-ring": { cameraPresence: "support", scale: 1.02, x: -176, y: -92, z: -60 },
+      "actor.judgement-question": { cameraPresence: "featured", scale: 1, x: 82, y: -34, z: 80 }
+    },
+    camera: {
+      depthBand: "mid",
+      focusActorId: "actor.judgement-question",
+      perspective: 1120,
+      poseId: "camera.fix-a4.judgement-entry",
+      rotationX: 3,
+      rotationY: -2,
+      rotationZ: 0,
+      scale: 1,
+      x: 0,
+      y: -52,
+      z: 0
+    },
+    ringGeometry: {
+      gap: 34,
+      glow: 0.24,
+      portalRadius: 106,
+      role: "judgement-entry",
+      segmentProgress: [0.52, 0.44, 0.36, 0.3, 0.22],
+      thickness: 8
+    },
+    world: { lightingMode: "judgement", tone: "dark" }
+  },
+  "02.1": {
+    actorPatches: {
+      "actor.integration-ring": { cameraPresence: "support", scale: 1.07, x: -148, y: -78, z: -26 },
+      "actor.judgement-question": { cameraPresence: "featured", scale: 0.96, x: 70, y: -6, z: 90 }
+    },
+    camera: {
+      depthBand: "mid",
+      focusActorId: "actor.judgement-question",
+      perspective: 1140,
+      poseId: "camera.fix-a4.judgement-through",
+      rotationX: 4,
+      rotationY: -3,
+      rotationZ: 0,
+      scale: 1.01,
+      x: -8,
+      y: -78,
+      z: 10
+    },
+    ringGeometry: {
+      gap: 28,
+      glow: 0.3,
+      portalRadius: 112,
+      role: "judgement-through",
+      segmentProgress: [0.62, 0.54, 0.46, 0.4, 0.32],
+      thickness: 8
+    },
+    world: { lightingMode: "judgement", tone: "dark" }
+  },
+  "03.1": {
+    actorPatches: {
+      "actor.integration-ring": { cameraPresence: "ambient", scale: 1.1, x: -190, y: -118, z: -120 },
+      "actor.judgement-question": { cameraPresence: "featured", scale: 1.02, x: 12, y: -10, z: 120 }
+    },
+    camera: {
+      depthBand: "mid",
+      focusActorId: "actor.judgement-question",
+      perspective: 1160,
+      poseId: "camera.fix-a4.trend-depth",
+      rotationX: 5,
+      rotationY: -4,
+      rotationZ: -1,
+      scale: 1.03,
+      x: -20,
+      y: -108,
+      z: 34
+    },
+    ringGeometry: {
+      gap: 22,
+      glow: 0.34,
+      portalRadius: 118,
+      role: "trend-depth",
+      segmentProgress: [0.74, 0.62, 0.54, 0.46, 0.38],
+      thickness: 8
+    },
+    world: { lightingMode: "judgement", tone: "dark" }
+  },
+  "04.7": {
+    actorPatches: {
+      "actor.integration-ring": { cameraPresence: "support", scale: 1.08, x: -132, y: -96, z: -20 },
+      "actor.judgement-question": { cameraPresence: "featured", scale: 0.94, x: 92, y: 36, z: 70 }
+    },
+    camera: {
+      depthBand: "mid",
+      focusActorId: "actor.judgement-question",
+      perspective: 1180,
+      poseId: "camera.fix-a4.gap-consequence",
+      rotationX: 5,
+      rotationY: -2,
+      rotationZ: 0,
+      scale: 1.02,
+      x: -18,
+      y: -132,
+      z: 22
+    },
+    ringGeometry: {
+      gap: 18,
+      glow: 0.38,
+      portalRadius: 126,
+      role: "gap-consequence",
+      segmentProgress: [0.82, 0.72, 0.64, 0.58, 0.48],
+      thickness: 9
+    },
+    world: { lightingMode: "judgement", tone: "dark" }
+  },
+  "05.1": {
+    actorPatches: {
+      "actor.integration-ring": { cameraPresence: "support", scale: 1.13, x: -138, y: -88, z: -14 },
+      "actor.ledger-dial": { cameraPresence: "featured", scale: 1.02, x: 62, y: 28, z: 96 }
+    },
+    camera: {
+      depthBand: "mid",
+      focusActorId: "actor.ledger-dial",
+      perspective: 1160,
+      poseId: "camera.fix-a4.ledger-arrival",
+      rotationX: 5,
+      rotationY: -3,
+      rotationZ: -1,
+      scale: 1.01,
+      x: -20,
+      y: -162,
+      z: -4
+    },
+    ringGeometry: {
+      gap: 14,
+      glow: 0.42,
+      portalRadius: 132,
+      role: "ledger-arrival",
+      segmentProgress: [0.9, 0.82, 0.74, 0.66, 0.56],
+      thickness: 11
+    },
+    world: { lightingMode: "ledger", tone: "dark" }
+  },
+  "08.7": {
+    actorPatches: {
+      "actor.integration-ring": { cameraPresence: "support", scale: 1.06, x: -126, y: -76, z: -12 },
+      "actor.product-stage": { cameraPresence: "featured", scale: 0.94, x: 96, y: -22, z: 110 }
+    },
+    camera: {
+      depthBand: "mid",
+      focusActorId: "actor.product-stage",
+      perspective: 1180,
+      poseId: "camera.fix-a4.capability-core",
+      rotationX: 4,
+      rotationY: -4,
+      rotationZ: -1,
+      scale: 1.02,
+      x: -34,
+      y: -186,
+      z: 26
+    },
+    ringGeometry: {
+      gap: 10,
+      glow: 0.46,
+      portalRadius: 142,
+      role: "capability-core",
+      segmentProgress: [0.96, 0.9, 0.84, 0.78, 0.68],
+      thickness: 10
+    },
+    world: { lightingMode: "ledger", tone: "paper" }
+  }
+};
+
 export function resolveStageTarget(
   beatId: BeatId,
   options: { readonly reducedMotion?: boolean } = {}
@@ -277,7 +467,8 @@ export function resolveStageTarget(
   }
 
   const routePhase = getLabRoutePhase(scene.sceneNumber);
-  const base = createBaseTarget(beatId, routePhase, scene.sceneNumber, options.reducedMotion ?? false);
+  const proofTarget = getFixA4ProofTarget(beatId);
+  const base = createBaseTarget(beatId, routePhase, scene.sceneNumber, options.reducedMotion ?? false, proofTarget);
   const scenePatched = applyScenePatch(base, scene.sceneNumber, scene.screenCopy);
   const beatPatched = applyBeatPatch(scenePatched, beatId, beat.screenCopy);
   const metadataPatched = applyTransitionMetadataPatch(beatPatched);
@@ -294,16 +485,17 @@ function createBaseTarget(
   beatId: BeatId,
   routePhase: RoutePhase,
   sceneNumber: number,
-  reducedMotion: boolean
+  reducedMotion: boolean,
+  proofTarget: ProofTarget | undefined
 ): StageTarget {
   const movementKind = movementKindByBeatId[beatId];
   const productVisible = isAtOrAfter(beatId, "08.7");
 
   return {
-    actors: createActorTargets(beatId, routePhase),
+    actors: createActorTargets(beatId, routePhase, proofTarget),
     artifacts: createArtifactTargets(beatId, routePhase),
     beatId,
-    camera: {
+    camera: proofTarget?.camera ?? {
       ...cameraTargetByPhase[routePhase],
       focusActorId: getStageCue(beatId).leadActorId
     },
@@ -325,7 +517,7 @@ function createBaseTarget(
     reducedMotion,
     routePhase,
     sceneNumber,
-    world: createWorldTarget(routePhase)
+    world: proofTarget?.world ?? createWorldTarget(routePhase)
   };
 }
 
@@ -377,7 +569,11 @@ function applyReducedMotionPatch(target: StageTarget): StageTarget {
   };
 }
 
-function createActorTargets(beatId: BeatId, routePhase: RoutePhase): LabActorTargets {
+function createActorTargets(
+  beatId: BeatId,
+  routePhase: RoutePhase,
+  proofTarget: ProofTarget | undefined
+): LabActorTargets {
   const cueByActor = new Map(getStageCue(beatId).actorCues.map((cue) => [cue.actorId, cue]));
 
   const entries = labActorIds.map((actorId) => {
@@ -386,16 +582,25 @@ function createActorTargets(beatId: BeatId, routePhase: RoutePhase): LabActorTar
       throw new Error(`Missing stage cue for ${actorId} at ${beatId}`);
     }
 
-    const pose = actorPoseByPhase[actorId][routePhase];
+    const proofPatch = proofTarget?.actorPatches[actorId];
+    const pose = {
+      ...actorPoseByPhase[actorId][routePhase],
+      ...stripCameraPresence(proofPatch)
+    };
     const forcedProductVisible = actorId === "actor.product-stage" && isAtOrAfter(beatId, "08.7");
-    const visible = forcedProductVisible || cue.lifecycle.currentVisible;
+    const lifecycleVisible = forcedProductVisible || cue.lifecycle.currentVisible;
     const lifecycle = forcedProductVisible && cue.lifecycle.phase === "off" ? "hold" : cue.lifecycle.phase;
+    const cameraPresence = lifecycleVisible
+      ? proofPatch?.cameraPresence ?? getDefaultCameraPresence(actorId, cue.role)
+      : "offscreen";
+    const visible = isCameraVisible(cameraPresence);
     const base: LabActorTarget = {
       actorId,
+      cameraPresence,
       functionRole: actorFunctionRoleById[actorId],
       lifecycle,
       occlusion: actorOcclusionById[actorId],
-      opacity: visible ? actorOpacityById[actorId] : 0,
+      opacity: getActorOpacity(cameraPresence, cue.role),
       poseId: `pose.${actorId.replace("actor.", "")}.${routePhase}`,
       role: cue.role,
       rotateX: pose.rotateX ?? 0,
@@ -413,7 +618,7 @@ function createActorTargets(beatId: BeatId, routePhase: RoutePhase): LabActorTar
         actorId,
         {
           ...base,
-          geometry: ringGeometryByPhase[routePhase]
+          geometry: proofTarget?.ringGeometry ?? ringGeometryByPhase[routePhase]
         } satisfies IntegrationRingActorTarget
       ];
     }
@@ -436,18 +641,20 @@ function createArtifactTargets(
   return Object.fromEntries(
     labArtifactIds.map((artifactId, index) => {
       const base = artifactBasePoses[index];
+      const cameraPresence = visible && index < 3 ? "support" : visible ? "latent" : "offscreen";
       return [
         artifactId,
         {
           artifactId,
+          cameraPresence,
           lifecycle,
           mode,
-          opacity: visible ? 0.82 - index * 0.055 : 0,
-          scale: visible ? phaseOffset.scale : 0.9,
-          visible,
-          x: base.x + phaseOffset.x,
-          y: base.y + phaseOffset.y,
-          z: base.z + phaseOffset.z
+          opacity: isCameraVisible(cameraPresence) ? 0.74 - index * 0.06 : 0,
+          scale: isCameraVisible(cameraPresence) ? phaseOffset.scale : 0.72,
+          visible: isCameraVisible(cameraPresence),
+          x: isCameraVisible(cameraPresence) ? base.x + phaseOffset.x : base.x + phaseOffset.x + 460,
+          y: isCameraVisible(cameraPresence) ? base.y + phaseOffset.y : base.y + phaseOffset.y + 240,
+          z: isCameraVisible(cameraPresence) ? base.z + phaseOffset.z : -420
         }
       ];
     })
@@ -495,6 +702,8 @@ export function validateStageTarget(target: StageTarget): StageTarget {
     throw new Error(`Product visibility mismatch at ${target.beatId}`);
   }
 
+  assertCameraPresenceBudget(target);
+
   return target;
 }
 
@@ -514,6 +723,70 @@ function assertLifecycleInvariant(
   if (item.visible && item.lifecycle === "off") {
     throw new Error(`${beatId} ${id} violates visible lifecycle invariant`);
   }
+}
+
+function assertCameraPresenceBudget(target: StageTarget) {
+  const actorPresences = Object.values(target.actors).map((actor) => actor.cameraPresence);
+  const featured = actorPresences.filter((presence) => presence === "featured").length;
+  const support = actorPresences.filter((presence) => presence === "support").length;
+  const ambient = actorPresences.filter((presence) => presence === "ambient").length;
+  const visibleArtifacts = Object.values(target.artifacts).filter((artifact) => artifact.visible).length;
+
+  if (featured !== 1) {
+    throw new Error(`${target.beatId} must have exactly one featured actor, got ${featured}`);
+  }
+
+  if (support > 2) {
+    throw new Error(`${target.beatId} has too many support actors: ${support}`);
+  }
+
+  if (ambient > 1) {
+    throw new Error(`${target.beatId} has too many ambient actors: ${ambient}`);
+  }
+
+  if (visibleArtifacts > 3) {
+    throw new Error(`${target.beatId} has too many visible artifacts: ${visibleArtifacts}`);
+  }
+}
+
+export function assertMovementDelta(previousTarget: StageTarget, nextTarget: StageTarget) {
+  if (nextTarget.movementKind === "stable") {
+    assertStablePoseEquality(previousTarget, nextTarget);
+    return;
+  }
+
+  if (nextTarget.movementKind === "spatial" && !hasCameraOrWorldDelta(previousTarget, nextTarget)) {
+    throw new Error(`${nextTarget.beatId} is spatial but camera/world pose did not change`);
+  }
+
+  if (nextTarget.movementKind === "actor" && !hasActorArtifactOrRingDelta(previousTarget, nextTarget)) {
+    throw new Error(`${nextTarget.beatId} is actor but actor/artifact/ring pose did not change`);
+  }
+}
+
+function hasCameraOrWorldDelta(previousTarget: StageTarget, nextTarget: StageTarget) {
+  return JSON.stringify(cameraPoseForEquality(previousTarget.camera)) !== JSON.stringify(cameraPoseForEquality(nextTarget.camera))
+    || JSON.stringify(previousTarget.world) !== JSON.stringify(nextTarget.world);
+}
+
+function hasActorArtifactOrRingDelta(previousTarget: StageTarget, nextTarget: StageTarget) {
+  const actorDelta = labActorIds.some((actorId) => {
+    const previous = previousTarget.actors[actorId];
+    const next = nextTarget.actors[actorId];
+    return JSON.stringify(actorPoseForEquality(previous)) !== JSON.stringify(actorPoseForEquality(next))
+      || previous.cameraPresence !== next.cameraPresence
+      || (actorId === "actor.integration-ring"
+        && JSON.stringify((previous as IntegrationRingActorTarget).geometry) !== JSON.stringify((next as IntegrationRingActorTarget).geometry));
+  });
+
+  const artifactDelta = labArtifactIds.some((artifactId) => {
+    const previous = previousTarget.artifacts[artifactId];
+    const next = nextTarget.artifacts[artifactId];
+    return JSON.stringify(artifactPoseForEquality(previous)) !== JSON.stringify(artifactPoseForEquality(next))
+      || previous.cameraPresence !== next.cameraPresence;
+  });
+
+  return actorDelta || artifactDelta;
 }
 
 export function assertStablePoseEquality(previousTarget: StageTarget, nextTarget: StageTarget) {
@@ -578,6 +851,63 @@ function artifactPoseForEquality(artifact: LabArtifactTarget) {
     y: artifact.y,
     z: artifact.z
   };
+}
+
+function getFixA4ProofTarget(beatId: BeatId): ProofTarget | undefined {
+  if (!fixA4ProofBeatIdSet.has(beatId)) return undefined;
+  return fixA4ProofTargets[beatId as (typeof fixA4ProofBeatIds)[number]];
+}
+
+function stripCameraPresence(
+  patch: (Partial<PoseSeed> & { readonly cameraPresence?: CameraPresence }) | undefined
+): Partial<PoseSeed> {
+  if (!patch) return {};
+  const pose: {
+    rotateX?: number;
+    rotateY?: number;
+    rotateZ?: number;
+    scale?: number;
+    x?: number;
+    y?: number;
+    z?: number;
+  } = {};
+  if (patch.rotateX !== undefined) pose.rotateX = patch.rotateX;
+  if (patch.rotateY !== undefined) pose.rotateY = patch.rotateY;
+  if (patch.rotateZ !== undefined) pose.rotateZ = patch.rotateZ;
+  if (patch.scale !== undefined) pose.scale = patch.scale;
+  if (patch.x !== undefined) pose.x = patch.x;
+  if (patch.y !== undefined) pose.y = patch.y;
+  if (patch.z !== undefined) pose.z = patch.z;
+  return pose;
+}
+
+function getDefaultCameraPresence(actorId: StageActorId, role: StageActorRole): CameraPresence {
+  if (role === "lead") return "featured";
+
+  if (
+    role === "support"
+    && (
+      actorId === "actor.integration-ring"
+      || actorId === "actor.product-stage"
+      || actorId === "actor.safety-boundary"
+      || actorId === "actor.action-path"
+    )
+  ) {
+    return "support";
+  }
+
+  return "latent";
+}
+
+function isCameraVisible(cameraPresence: CameraPresence) {
+  return cameraPresence === "featured" || cameraPresence === "support" || cameraPresence === "ambient";
+}
+
+function getActorOpacity(cameraPresence: CameraPresence, role: StageActorRole) {
+  if (cameraPresence === "featured") return 0.98;
+  if (cameraPresence === "support") return role === "lead" ? 0.9 : 0.72;
+  if (cameraPresence === "ambient") return 0.22;
+  return 0;
 }
 
 function getLabRoutePhase(sceneNumber: number): RoutePhase {
@@ -815,22 +1145,6 @@ const actorOcclusionById: Record<(typeof labActorIds)[number], SpatialOcclusion>
   "actor.safety-boundary": "midground",
   "actor.scenario-radar": "foreground",
   "actor.source-packet": "midground"
-};
-
-const actorOpacityById: Record<(typeof labActorIds)[number], number> = {
-  "actor.action-confirm-gate": 0.88,
-  "actor.action-path": 0.96,
-  "actor.cta-dock": 0.72,
-  "actor.fact-to-benefit": 0.78,
-  "actor.human-review": 0.88,
-  "actor.integration-ring": 0.92,
-  "actor.judgement-question": 0.9,
-  "actor.ledger-dial": 0.86,
-  "actor.output-cards": 0.78,
-  "actor.product-stage": 0.96,
-  "actor.safety-boundary": 0.94,
-  "actor.scenario-radar": 0.9,
-  "actor.source-packet": 0.74
 };
 
 const artifactBasePoses = [

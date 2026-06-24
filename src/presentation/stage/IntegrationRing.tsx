@@ -87,6 +87,7 @@ export function IntegrationRingGeometry({
           d={path}
           data-segment-id={integrationRingSegmentIds[index]}
           key={path}
+          pathLength={1}
         />
       ))}
     </svg>
@@ -100,6 +101,11 @@ function ringStateStyle(state: IntegrationRingGeometryState | undefined): CSSPro
     "--ring-gap": state.gap,
     "--ring-glow": state.glow,
     "--ring-portal-radius": state.portalRadius,
+    "--ring-segment-progress-1": state.segmentProgress?.[0],
+    "--ring-segment-progress-2": state.segmentProgress?.[1],
+    "--ring-segment-progress-3": state.segmentProgress?.[2],
+    "--ring-segment-progress-4": state.segmentProgress?.[3],
+    "--ring-segment-progress-5": state.segmentProgress?.[4],
     "--ring-thickness": state.thickness
   } as CSSProperties;
 }

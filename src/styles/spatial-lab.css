@@ -37,6 +37,11 @@
 
 .spatial-lab-viewport {
   border: 1px solid rgba(242, 234, 220, 0.22);
+  --lab-surface: rgba(242, 234, 220, 0.14);
+  --lab-surface-border: rgba(242, 234, 220, 0.34);
+  --lab-text: #f2eadc;
+  --lab-muted: #b8aea0;
+  --lab-grid: rgba(242, 234, 220, 0.035);
   min-height: 520px;
   overflow: hidden;
   position: relative;
@@ -45,6 +50,32 @@
     linear-gradient(rgba(242, 234, 220, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(242, 234, 220, 0.035) 1px, transparent 1px),
     #191714;
+  background-size: 72px 72px;
+}
+
+.spatial-lab-viewport[data-world-tone="dark"] {
+  --lab-surface: rgba(242, 234, 220, 0.13);
+  --lab-surface-border: rgba(242, 234, 220, 0.3);
+  --lab-text: #f2eadc;
+  --lab-muted: #b8aea0;
+  --lab-grid: rgba(242, 234, 220, 0.026);
+  background:
+    linear-gradient(var(--lab-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--lab-grid) 1px, transparent 1px),
+    #171613;
+  background-size: 72px 72px;
+}
+
+.spatial-lab-viewport[data-world-tone="paper"] {
+  --lab-surface: rgba(31, 29, 25, 0.1);
+  --lab-surface-border: rgba(31, 29, 25, 0.24);
+  --lab-text: #26221c;
+  --lab-muted: #6f6659;
+  --lab-grid: rgba(31, 29, 25, 0.032);
+  background:
+    linear-gradient(var(--lab-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--lab-grid) 1px, transparent 1px),
+    #e7dbc8;
   background-size: 72px 72px;
 }
 
@@ -91,13 +122,13 @@
 
 .spatial-lab-actor {
   align-content: center;
-  background: rgba(242, 234, 220, 0.08);
-  border: 1px solid rgba(242, 234, 220, 0.28);
-  color: #f2eadc;
+  background: transparent;
+  border: 0;
+  color: var(--lab-text);
   display: grid;
   gap: 5px;
   min-height: 82px;
-  padding: 10px;
+  padding: 0;
   left: var(--lab-stage-center-x, 50%);
   position: absolute;
   text-align: left;
@@ -118,9 +149,19 @@
   will-change: opacity, transform;
 }
 
+.spatial-lab-root[data-lab-mode="debug"] .spatial-lab-actor::before {
+  border: 1px dashed rgba(214, 95, 81, 0.5);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
 .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
 .spatial-lab-actor[data-stage-actor-id="actor.product-stage"],
-.spatial-lab-actor[data-stage-actor-id="actor.action-path"] {
+.spatial-lab-actor[data-stage-actor-id="actor.action-path"],
+.spatial-lab-actor[data-stage-actor-id="actor.judgement-question"],
+.spatial-lab-actor[data-stage-actor-id="actor.ledger-dial"] {
   align-content: stretch;
   background: transparent;
   border: 0;
@@ -143,9 +184,18 @@
   width: clamp(300px, 32vw, 470px);
 }
 
+.spatial-lab-actor[data-stage-actor-id="actor.judgement-question"] {
+  height: clamp(190px, 18vw, 280px);
+  width: clamp(280px, 28vw, 420px);
+}
+
+.spatial-lab-actor[data-stage-actor-id="actor.ledger-dial"] {
+  height: clamp(240px, 24vw, 360px);
+  width: clamp(240px, 24vw, 360px);
+}
+
 .spatial-lab-actor[data-actor-role="lead"] {
-  border-color: rgba(174, 54, 45, 0.88);
-  background: rgba(174, 54, 45, 0.16);
+  background: transparent;
 }
 
 .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"][data-actor-role="lead"],
@@ -196,7 +246,29 @@
 }
 
 .spatial-lab-ring-geometry .ring-segment {
+  stroke-dasharray: var(--ring-segment-progress, 1) 1;
+  stroke-dashoffset: calc(var(--ring-gap, 0) / 520);
   stroke-width: calc(var(--ring-thickness, 10) * 1px);
+}
+
+.spatial-lab-ring-geometry .ring-segment[data-segment-id="integration-ring-segment-1"] {
+  --ring-segment-progress: var(--ring-segment-progress-1, 1);
+}
+
+.spatial-lab-ring-geometry .ring-segment[data-segment-id="integration-ring-segment-2"] {
+  --ring-segment-progress: var(--ring-segment-progress-2, 1);
+}
+
+.spatial-lab-ring-geometry .ring-segment[data-segment-id="integration-ring-segment-3"] {
+  --ring-segment-progress: var(--ring-segment-progress-3, 1);
+}
+
+.spatial-lab-ring-geometry .ring-segment[data-segment-id="integration-ring-segment-4"] {
+  --ring-segment-progress: var(--ring-segment-progress-4, 1);
+}
+
+.spatial-lab-ring-geometry .ring-segment[data-segment-id="integration-ring-segment-5"] {
+  --ring-segment-progress: var(--ring-segment-progress-5, 1);
 }
 
 .spatial-lab-ring-geometry .ring-core {
@@ -211,12 +283,139 @@
 }
 
 .spatial-lab-product-geometry .product-stage-shell {
-  color: rgba(184, 174, 160, 0.78);
+  color: var(--lab-muted);
   height: 100%;
   left: 50%;
   opacity: 1;
   top: 50%;
   width: 100%;
+}
+
+.spatial-lab-judgement-geometry,
+.spatial-lab-trend-geometry,
+.spatial-lab-ledger-geometry {
+  height: 100%;
+  position: relative;
+  width: 100%;
+}
+
+.spatial-lab-judgement-orbit {
+  border: 2px solid var(--lab-surface-border);
+  border-radius: 999px;
+  inset: 12%;
+  position: absolute;
+}
+
+.spatial-lab-judgement-core {
+  background: #d65f51;
+  border-radius: 999px;
+  height: 18%;
+  left: 41%;
+  position: absolute;
+  top: 41%;
+  width: 18%;
+}
+
+.spatial-lab-judgement-branch {
+  background: var(--lab-surface-border);
+  height: 2px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform-origin: left center;
+  width: 40%;
+}
+
+.spatial-lab-judgement-branch.branch-a {
+  transform: rotate(-24deg);
+}
+
+.spatial-lab-judgement-branch.branch-b {
+  transform: rotate(24deg);
+}
+
+.spatial-lab-trend-geometry {
+  align-items: end;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 24px;
+}
+
+.spatial-lab-trend-geometry span {
+  background: linear-gradient(180deg, rgba(214, 95, 81, 0.82), var(--lab-surface));
+  border: 1px solid var(--lab-surface-border);
+  min-height: 44px;
+}
+
+.spatial-lab-trend-geometry span:nth-child(1) {
+  height: 42%;
+}
+
+.spatial-lab-trend-geometry span:nth-child(2) {
+  height: 58%;
+}
+
+.spatial-lab-trend-geometry span:nth-child(3) {
+  height: 74%;
+}
+
+.spatial-lab-trend-geometry span:nth-child(4) {
+  height: 92%;
+}
+
+.spatial-lab-ledger-geometry {
+  border: 2px solid var(--lab-surface-border);
+  border-radius: 999px;
+}
+
+.spatial-lab-ledger-geometry .ledger-axis,
+.spatial-lab-ledger-geometry .ledger-quadrant {
+  position: absolute;
+}
+
+.spatial-lab-ledger-geometry .ledger-axis {
+  background: var(--lab-surface-border);
+}
+
+.spatial-lab-ledger-geometry .ledger-axis.horizontal {
+  height: 1px;
+  left: 10%;
+  right: 10%;
+  top: 50%;
+}
+
+.spatial-lab-ledger-geometry .ledger-axis.vertical {
+  bottom: 10%;
+  left: 50%;
+  top: 10%;
+  width: 1px;
+}
+
+.spatial-lab-ledger-geometry .ledger-quadrant {
+  border: 1px solid rgba(214, 95, 81, 0.34);
+  height: 28%;
+  width: 28%;
+}
+
+.spatial-lab-ledger-geometry .q1 {
+  left: 18%;
+  top: 18%;
+}
+
+.spatial-lab-ledger-geometry .q2 {
+  right: 18%;
+  top: 18%;
+}
+
+.spatial-lab-ledger-geometry .q3 {
+  bottom: 18%;
+  left: 18%;
+}
+
+.spatial-lab-ledger-geometry .q4 {
+  bottom: 18%;
+  right: 18%;
 }
 
 .spatial-lab-action-path-geometry {
@@ -252,9 +451,9 @@
 
 .spatial-lab-artifact {
   align-content: center;
-  background: rgba(242, 234, 220, 0.16);
-  border: 1px solid rgba(242, 234, 220, 0.34);
-  color: #f2eadc;
+  background: var(--lab-surface);
+  border: 1px solid var(--lab-surface-border);
+  color: var(--lab-text);
   display: grid;
   height: 58px;
   left: var(--lab-stage-center-x, 50%);
@@ -287,7 +486,7 @@
 
 .spatial-lab-world-typography {
   bottom: 24px;
-  color: rgba(242, 234, 220, 0.52);
+  color: var(--lab-muted);
   display: grid;
   gap: 4px;
   left: 24px;
@@ -433,6 +632,10 @@
 .spatial-lab-root[data-lab-mode="review"] .spatial-lab-lab-controls,
 .spatial-lab-root[data-lab-mode="review"] .spatial-lab-contract,
 .spatial-lab-root[data-lab-mode="review"] .spatial-lab-actor-debug {
+  display: none;
+}
+
+.spatial-lab-root[data-lab-mode="review"] .spatial-lab-world-atmosphere {
   display: none;
 }
 

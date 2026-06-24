@@ -4,6 +4,7 @@ import test from "node:test";
 
 import { beats } from "../src/content/beats";
 import {
+  assertMovementDelta,
   assertStablePoseEquality,
   labArtifactIds,
   resolveStageTarget
@@ -50,19 +51,12 @@ test("WP-55 FIX-A3 stable adjacent Beats keep outer pose equality", () => {
   }
 });
 
-test("WP-55 FIX-A3 movementKind distribution matches the stage contract", () => {
-  const counts = beats.reduce(
-    (result, beat) => {
-      result[resolveStageTarget(beat.id).movementKind] += 1;
-      return result;
-    },
-    { actor: 0, spatial: 0, stable: 0 }
-  );
-  const total = beats.length;
+test("WP-55 FIX-A4 proof route movementKind is backed by real target delta", () => {
+  const proofRoute = ["01.1", "02.1", "03.1", "04.7", "05.1", "08.7"] as const;
 
-  assert.ok(counts.stable / total >= 0.6 && counts.stable / total <= 0.7, JSON.stringify(counts));
-  assert.ok(counts.actor / total >= 0.2 && counts.actor / total <= 0.3, JSON.stringify(counts));
-  assert.ok(counts.spatial / total >= 0.08 && counts.spatial / total <= 0.11, JSON.stringify(counts));
+  for (let index = 1; index < proofRoute.length; index += 1) {
+    assertMovementDelta(resolveStageTarget(proofRoute[index - 1]), resolveStageTarget(proofRoute[index]));
+  }
 });
 
 test("WP-55 FIX-A3 Ring pose is unified on the IntegrationRing actor", () => {

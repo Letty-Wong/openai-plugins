@@ -31,7 +31,7 @@ test("WP-54 Runtime writes perspective to ScreenViewport, not WorldCamera", () =
   const runtimeSource = readFileSync("src/presentation/spatial-lab/PoseTransitionRuntime.tsx", "utf8");
 
   assert.match(runtimeSource, /root\.querySelector<HTMLElement>\("\.spatial-lab-viewport"\)/);
-  assert.match(runtimeSource, /function viewportVars\(target: StageTarget\)/);
+  assert.match(runtimeSource, /function viewportVars\(target: RuntimePoseTarget\)/);
   assert.match(runtimeSource, /"--lab-camera-perspective": `\$\{target\.camera\.perspective\}px`/);
   assert.doesNotMatch(runtimeSource, /function cameraVars\(target: StageTarget\): Record<string, string \| number> \{\s*return \{\s*"--lab-camera-perspective"/);
 });

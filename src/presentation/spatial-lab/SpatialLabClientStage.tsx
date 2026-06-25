@@ -135,6 +135,7 @@ export function PresentationStageClientV4({
       data-current-beat-id={target.beatId}
       data-lab-mode={mode}
       data-spatial-lab-version="V4"
+      data-world-motion-state={target.world.motionState}
     >
       <header className="spatial-lab-header">
         <p>Spatial Lab V4 / Gate A + Gate B greybox</p>
@@ -147,6 +148,7 @@ export function PresentationStageClientV4({
         data-beat-movement-kind={target.movementKind}
         data-current-beat-id={target.beatId}
         data-world-lighting-mode={target.world.lightingMode}
+        data-world-motion-state={target.world.motionState}
         data-world-tone={target.world.tone}
         data-owner="ScreenViewport"
         data-route-phase={target.routePhase}
@@ -158,6 +160,7 @@ export function PresentationStageClientV4({
         <WorldCamera initialTarget={initialTargetRef.current} target={target}>
           <WorldSpace>
             <WorldAtmosphere target={target} />
+            <PortalPreviewLayer initialTarget={initialTargetRef.current} target={target} />
             <PersistentActors initialTarget={initialTargetRef.current} target={target} />
             <ArtifactSystem initialTarget={initialTargetRef.current} target={target} />
             <WorldTypography target={target} />
@@ -224,8 +227,34 @@ function WorldAtmosphere({ target }: { readonly target: StageTarget }) {
       aria-hidden="true"
       className="spatial-lab-world-atmosphere"
       data-owner="WorldSpace"
+      data-world-motion-state={target.world.motionState}
       data-route-phase={target.routePhase}
     />
+  );
+}
+
+function PortalPreviewLayer({
+  initialTarget,
+  target
+}: {
+  readonly initialTarget: StageTarget;
+  readonly target: StageTarget;
+}) {
+  return (
+    <div
+      aria-hidden="true"
+      className="spatial-lab-portal-preview"
+      data-owner="WorldSpace"
+      data-portal-visible={String(target.portal.visible)}
+      data-world-motion-state={target.world.motionState}
+      style={initialPortalStyle(initialTarget)}
+    >
+      <span className="portal-boundary top" />
+      <span className="portal-boundary right" />
+      <span className="portal-boundary bottom" />
+      <span className="portal-boundary left" />
+      <span className="portal-horizon" />
+    </div>
   );
 }
 
@@ -446,16 +475,54 @@ function ArtifactBlock({
       data-visible={String(artifact.visible)}
       style={initialArtifactStyle(initialArtifact)}
     >
-      <span>{artifact.artifactId}</span>
-      <strong>{artifact.mode}</strong>
+      <ArtifactShell artifact={artifact} />
+    </div>
+  );
+}
+
+function ArtifactShell({ artifact }: { readonly artifact: LabArtifactTarget }) {
+  const label = getArtifactAudienceLabel(artifact.mode);
+
+  return (
+    <div className="spatial-lab-artifact-shell">
+      <span className="artifact-debug-id">{artifact.artifactId}</span>
+      <span className="artifact-kicker">{label.kicker}</span>
+      <strong>{label.title}</strong>
+      <div className="artifact-fact-rows" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="artifact-hero-block" aria-hidden="true" />
+      <div className="artifact-storyboard-cells" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="artifact-mail-lines" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="artifact-department-slots" aria-hidden="true">
+        <span>市场</span>
+        <span>销售</span>
+        <span>视频</span>
+        <span>客服</span>
+      </div>
     </div>
   );
 }
 
 function WorldTypography({ target }: { readonly target: StageTarget }) {
   return (
-    <div className="spatial-lab-world-typography" data-owner="WorldTypography">
-      <span>{target.actors["actor.integration-ring"].geometry.role}</span>
+    <div
+      className="spatial-lab-world-typography"
+      data-owner="WorldTypography"
+      data-world-motion-state={target.world.motionState}
+    >
+      <span className="world-kicker">{getAudienceKicker(target)}</span>
+      <span className="world-debug-role">{target.actors["actor.integration-ring"].geometry.role}</span>
       <strong>{target.copy.headline}</strong>
     </div>
   );
@@ -543,7 +610,16 @@ function LabControls({
 
 function initialViewportStyle(target: StageTarget): CSSProperties {
   return {
-    "--lab-camera-perspective": `${target.camera.perspective}px`
+    "--lab-camera-perspective": `${target.camera.perspective}px`,
+    "--lab-old-world-opacity": target.portal.oldWorldOpacity,
+    "--lab-portal-edge-progress": target.portal.edgeProgress,
+    "--lab-portal-opacity": target.portal.opacity,
+    "--lab-portal-radius": `${target.portal.radius}px`,
+    "--lab-portal-safety-opacity": target.portal.safetyOpacity,
+    "--lab-portal-scale": target.portal.scale,
+    "--lab-portal-x": `${target.portal.x}px`,
+    "--lab-portal-y": `${target.portal.y}px`,
+    "--lab-portal-z": `${target.portal.z}px`
   } as CSSProperties;
 }
 
@@ -614,4 +690,41 @@ function initialArtifactStyle(artifact: LabArtifactTarget): CSSProperties {
     "--lab-artifact-y": `${artifact.y}px`,
     "--lab-artifact-z": `${artifact.z}px`
   } as CSSProperties;
+}
+
+function initialPortalStyle(target: StageTarget): CSSProperties {
+  return {
+    "--lab-old-world-opacity": target.portal.oldWorldOpacity,
+    "--lab-portal-edge-progress": target.portal.edgeProgress,
+    "--lab-portal-opacity": target.portal.opacity,
+    "--lab-portal-radius": `${target.portal.radius}px`,
+    "--lab-portal-safety-opacity": target.portal.safetyOpacity,
+    "--lab-portal-scale": target.portal.scale,
+    "--lab-portal-x": `${target.portal.x}px`,
+    "--lab-portal-y": `${target.portal.y}px`,
+    "--lab-portal-z": `${target.portal.z}px`
+  } as CSSProperties;
+}
+
+function getAudienceKicker(target: StageTarget) {
+  if (target.beatId === "15.8") return "输出冻结";
+  if (target.beatId === "16.1") return "安全边界";
+  if (target.routePhase === "product") return "产品旅程";
+  if (target.routePhase === "ledger") return "能力接入";
+  if (target.routePhase === "safety") return "安全空间";
+  if (target.routePhase === "action") return "行动路径";
+  if (target.routePhase === "finale") return "闭环";
+  return "判断入口";
+}
+
+function getArtifactAudienceLabel(mode: LabArtifactTarget["mode"]) {
+  if (mode === "source") return { kicker: "资料", title: "产品信息" };
+  if (mode === "benefit") return { kicker: "转译", title: "客户利益" };
+  if (mode === "poster") return { kicker: "销售", title: "海报版式" };
+  if (mode === "storyboard") return { kicker: "视频", title: "分镜草案" };
+  if (mode === "email-faq") return { kicker: "外贸", title: "邮件 / FAQ" };
+  if (mode === "department-output") return { kicker: "复用", title: "部门输出" };
+  if (mode === "review") return { kicker: "安全", title: "审核材料" };
+  if (mode === "route") return { kicker: "行动", title: "路径材料" };
+  return { kicker: "占位", title: "待确认" };
 }

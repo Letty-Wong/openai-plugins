@@ -38,9 +38,18 @@ test("WP-57 FT-01 keeps ProductStage and IntegrationRing as the same actors", ()
     assert.equal(target.actors["actor.integration-ring"].actorId, "actor.integration-ring", beatId);
     assert.equal(target.actors["actor.product-stage"].visible, true, beatId);
     assert.equal(target.actors["actor.integration-ring"].visible, true, beatId);
-    assert.ok(Math.abs(target.actors["actor.product-stage"].x) <= 110, beatId);
+    assert.ok(Math.abs(target.camera.x + target.actors["actor.product-stage"].x) <= 40, beatId);
     assert.ok(Object.values(target.artifacts).filter((artifact) => artifact.visible).length <= 3, beatId);
   });
+});
+
+test("WP-57 FT-01.1 keeps the ring turn anchor stable from 08.7 to 09.1", () => {
+  const beforeTurn = resolveStageTarget("08.7");
+  const turn = resolveStageTarget("09.1");
+  const beforeScreenX = beforeTurn.camera.x + beforeTurn.actors["actor.integration-ring"].x;
+  const turnScreenX = turn.camera.x + turn.actors["actor.integration-ring"].x;
+
+  assert.ok(Math.abs(beforeScreenX - turnScreenX) <= 24);
 });
 
 test("WP-57 FT-01 moves workstations right-to-left while the product stays near center", () => {
@@ -76,13 +85,15 @@ test("WP-57 FT-01 uses stable artifact ids with product-journey modes", () => {
   });
 });
 
-test("WP-57 FT-01 freezes at 15.8 without starting the forward tunnel", () => {
+test("WP-57 FT-01.1 freezes 15.8 before the forward tunnel takes over", () => {
   const freeze = resolveStageTarget("15.8");
   const tunnel = resolveStageTarget("16.1");
 
-  assert.equal(freeze.copy.caption, "快，还不够。");
+  assert.equal(freeze.copy.headline, "快，还不够。");
+  assert.equal(freeze.copy.caption, "生成速度不是企业能力的全部");
+  assert.equal(freeze.world.motionState, "frozen");
   assert.equal(freeze.actors["actor.product-stage"].cameraPresence, "featured");
   assert.equal(freeze.artifacts["artifact.F01"].mode, "department-output");
   assert.equal(freeze.actors["actor.integration-ring"].geometry.role, "department-output-freeze");
-  assert.equal(tunnel.transition?.acceptanceFocus[0], "Metadata only until Gate A passes");
+  assert.equal(tunnel.transition?.acceptanceFocus[0], "FT-02 forward safety portal waypoints are active");
 });

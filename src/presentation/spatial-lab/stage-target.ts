@@ -34,10 +34,12 @@ export type LabArtifactMode =
 export type LabTransitionGate = "SR-04" | "SR-05" | "SR-06";
 
 export type LabWorldTone = "dark" | "paper";
+export type LabWorldMotionState = "active" | "frozen" | "portal" | "settled";
 export type CameraPresence = "featured" | "support" | "ambient" | "latent" | "offscreen";
 
 export type LabWorldTarget = {
   readonly lightingMode: "judgement" | "ledger" | "product" | "safety" | "action" | "finale";
+  readonly motionState: LabWorldMotionState;
   readonly tone: LabWorldTone;
 };
 
@@ -120,6 +122,41 @@ export type LabTransitionTarget = {
   readonly label: string;
 };
 
+export type LabPortalTarget = {
+  readonly edgeProgress: number;
+  readonly oldWorldOpacity: number;
+  readonly opacity: number;
+  readonly radius: number;
+  readonly safetyOpacity: number;
+  readonly scale: number;
+  readonly visible: boolean;
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+};
+
+export type SpatialWaypointTarget = {
+  readonly actors: LabActorTargets;
+  readonly artifacts: Readonly<Record<LabArtifactId, LabArtifactTarget>>;
+  readonly camera: LabCameraTarget;
+  readonly portal: LabPortalTarget;
+  readonly world: LabWorldTarget;
+};
+
+export type SpatialWaypoint = {
+  readonly duration: number;
+  readonly id: string;
+  readonly label: string;
+  readonly target: SpatialWaypointTarget;
+};
+
+export type SpatialTransitionPlan = {
+  readonly fromBeatId: BeatId;
+  readonly id: string;
+  readonly toBeatId: BeatId;
+  readonly waypoints: readonly SpatialWaypoint[];
+};
+
 export type StageTarget = {
   readonly actors: LabActorTargets;
   readonly artifacts: Readonly<Record<LabArtifactId, LabArtifactTarget>>;
@@ -128,11 +165,13 @@ export type StageTarget = {
   readonly copy: LabCopyTarget;
   readonly id: string;
   readonly movementKind: BeatMovementKind;
+  readonly portal: LabPortalTarget;
   readonly product: LabProductTarget;
   readonly reducedMotion: boolean;
   readonly routePhase: RoutePhase;
   readonly sceneNumber: number;
   readonly transition?: LabTransitionTarget;
+  readonly transitionPlan?: SpatialTransitionPlan;
   readonly world: LabWorldTarget;
 };
 
@@ -253,9 +292,9 @@ const transitionMetadataByBeatId: Readonly<Partial<Record<BeatId, LabTransitionT
   },
   "16.1": {
     acceptanceFocus: [
-      "Metadata only until Gate A passes",
-      "No forward portal waypoint is implemented in FIX-A3",
-      "Safety boundary is an absolute endpoint target"
+      "FT-02 forward safety portal waypoints are active",
+      "Ring and ProductStage keep stable actor ids",
+      "Reduced motion establishes the safety endpoint without a large Z-axis tunnel"
     ],
     gate: "SR-05",
     id: "transition.15-16.forward-safety-portal",
@@ -288,6 +327,7 @@ type ProofTarget = {
   readonly actorPatches: ProofActorPatch;
   readonly artifactPatches?: ProofArtifactPatch;
   readonly camera: LabCameraTarget;
+  readonly portal?: LabPortalTarget;
   readonly ringGeometry: RingGeometryTarget;
   readonly world: LabWorldTarget;
 };
@@ -322,7 +362,7 @@ const fixA4ProofTargets: Readonly<Record<(typeof fixA4ProofBeatIds)[number], Pro
       segmentProgress: [0.52, 0.44, 0.36, 0.3, 0.22],
       thickness: 8
     },
-    world: { lightingMode: "judgement", tone: "dark" }
+    world: { lightingMode: "judgement", motionState: "active", tone: "dark" }
   },
   "02.1": {
     actorPatches: {
@@ -350,7 +390,7 @@ const fixA4ProofTargets: Readonly<Record<(typeof fixA4ProofBeatIds)[number], Pro
       segmentProgress: [0.62, 0.54, 0.46, 0.4, 0.32],
       thickness: 8
     },
-    world: { lightingMode: "judgement", tone: "dark" }
+    world: { lightingMode: "judgement", motionState: "active", tone: "dark" }
   },
   "03.1": {
     actorPatches: {
@@ -378,7 +418,7 @@ const fixA4ProofTargets: Readonly<Record<(typeof fixA4ProofBeatIds)[number], Pro
       segmentProgress: [0.74, 0.62, 0.54, 0.46, 0.38],
       thickness: 8
     },
-    world: { lightingMode: "judgement", tone: "dark" }
+    world: { lightingMode: "judgement", motionState: "active", tone: "dark" }
   },
   "04.7": {
     actorPatches: {
@@ -406,7 +446,7 @@ const fixA4ProofTargets: Readonly<Record<(typeof fixA4ProofBeatIds)[number], Pro
       segmentProgress: [0.82, 0.72, 0.64, 0.58, 0.48],
       thickness: 9
     },
-    world: { lightingMode: "judgement", tone: "dark" }
+    world: { lightingMode: "judgement", motionState: "active", tone: "dark" }
   },
   "05.1": {
     actorPatches: {
@@ -434,12 +474,12 @@ const fixA4ProofTargets: Readonly<Record<(typeof fixA4ProofBeatIds)[number], Pro
       segmentProgress: [0.9, 0.82, 0.74, 0.66, 0.56],
       thickness: 11
     },
-    world: { lightingMode: "ledger", tone: "dark" }
+    world: { lightingMode: "ledger", motionState: "active", tone: "dark" }
   },
   "08.7": {
     actorPatches: {
       "actor.integration-ring": { cameraPresence: "support", scale: 1.06, x: -126, y: -20, z: -12 },
-      "actor.product-stage": { cameraPresence: "featured", scale: 0.94, x: 96, y: 24, z: 110 }
+      "actor.product-stage": { cameraPresence: "featured", scale: 0.94, x: 58, y: 24, z: 110 }
     },
     camera: {
       depthBand: "mid",
@@ -462,7 +502,7 @@ const fixA4ProofTargets: Readonly<Record<(typeof fixA4ProofBeatIds)[number], Pro
       segmentProgress: [0.96, 0.9, 0.84, 0.78, 0.68],
       thickness: 10
     },
-    world: { lightingMode: "ledger", tone: "paper" }
+    world: { lightingMode: "ledger", motionState: "active", tone: "paper" }
   }
 };
 
@@ -488,9 +528,10 @@ export function resolveStageTarget(
   const metadataPatched = applyTransitionMetadataPatch(beatPatched);
   const reducedPatched = options.reducedMotion ? applyReducedMotionPatch(metadataPatched) : metadataPatched;
   const validated = validateStageTarget(reducedPatched);
+  const planned = attachSpatialTransitionPlan(validated, options.reducedMotion ?? false);
 
   return {
-    ...validated,
+    ...planned,
     id: `stage-target:${beatId}:${options.reducedMotion ? "reduced" : "motion"}`
   };
 }
@@ -522,6 +563,7 @@ function createBaseTarget(
     },
     id: `stage-target:${beatId}`,
     movementKind,
+    portal: proofTarget?.portal ?? createPortalTarget(),
     product: {
       anchoredFromBeatId: "08.7",
       label: "ProductStage grey block",
@@ -535,12 +577,28 @@ function createBaseTarget(
   };
 }
 
+function createPortalTarget(overrides: Partial<LabPortalTarget> = {}): LabPortalTarget {
+  return {
+    edgeProgress: 0,
+    oldWorldOpacity: 0,
+    opacity: 0,
+    radius: 120,
+    safetyOpacity: 0,
+    scale: 1,
+    visible: false,
+    x: -138,
+    y: -6,
+    z: 80,
+    ...overrides
+  };
+}
+
 function applyScenePatch(target: StageTarget, sceneNumber: number, screenCopy: ScreenCopy): StageTarget {
   return {
     ...target,
     copy: {
       caption: screenCopy.finalLine ?? "",
-      eyebrow: `Scene ${String(sceneNumber).padStart(2, "0")} / ${target.routePhase}`,
+      eyebrow: `第 ${String(sceneNumber).padStart(2, "0")} 幕 / ${getRoutePhaseAudienceLabel(target.routePhase)}`,
       headline: screenCopy.title,
       status: screenCopy.status,
       support: screenCopy.support ?? ""
@@ -548,12 +606,33 @@ function applyScenePatch(target: StageTarget, sceneNumber: number, screenCopy: S
   };
 }
 
+function getRoutePhaseAudienceLabel(routePhase: RoutePhase) {
+  if (routePhase === "judgement") return "判断入口";
+  if (routePhase === "ledger") return "能力接入";
+  if (routePhase === "product") return "产品旅程";
+  if (routePhase === "safety") return "安全空间";
+  if (routePhase === "action") return "行动路径";
+  return "闭环";
+}
+
 function applyBeatPatch(target: StageTarget, beatId: BeatId, screenCopy: ScreenCopy): StageTarget {
+  if (beatId === "15.8") {
+    return {
+      ...target,
+      copy: {
+        ...target.copy,
+        caption: "生成速度不是企业能力的全部",
+        headline: "快，还不够。",
+        support: ""
+      }
+    };
+  }
+
   return {
     ...target,
     copy: {
       ...target.copy,
-      caption: beatId === "15.8" ? "快，还不够。" : screenCopy.finalLine ?? target.copy.caption,
+      caption: screenCopy.finalLine ?? target.copy.caption,
       support: screenCopy.support ?? target.copy.support
     }
   };
@@ -697,6 +776,7 @@ function getArtifactMode(routePhase: RoutePhase): LabArtifactMode {
 function createWorldTarget(routePhase: RoutePhase): LabWorldTarget {
   return {
     lightingMode: routePhase,
+    motionState: "active",
     tone: routePhase === "product" || routePhase === "finale" ? "paper" : "dark"
   };
 }
@@ -872,7 +952,9 @@ function artifactPoseForEquality(artifact: LabArtifactTarget) {
 }
 
 function getExplicitStageTarget(beatId: BeatId, sceneNumber: number): ProofTarget | undefined {
-  return getFixA4ProofTarget(beatId) ?? getFt01ProductJourneyTarget(beatId, sceneNumber);
+  return getFixA4ProofTarget(beatId)
+    ?? getFt01ProductJourneyTarget(beatId, sceneNumber)
+    ?? getFt02SafetyPortalTarget(beatId);
 }
 
 type Ft01StationConfig = {
@@ -895,14 +977,14 @@ const ft01ProductJourneyStations: Readonly<Record<number, Ft01StationConfig>> = 
   9: {
     artifactMode: "source",
     artifactX: 268,
-    cameraX: -54,
+    cameraX: -34,
     cameraY: -34,
     cameraZ: 42,
     focusZ: 132,
     gap: 8,
     glow: 0.5,
     poseId: "product-source-station",
-    productX: 72,
+    productX: 58,
     productY: 24,
     ringRole: "product-source-gate",
     segmentProgress: [0.98, 0.92, 0.86, 0.8, 0.7]
@@ -910,14 +992,14 @@ const ft01ProductJourneyStations: Readonly<Record<number, Ft01StationConfig>> = 
   10: {
     artifactMode: "source",
     artifactX: 178,
-    cameraX: -70,
+    cameraX: -34,
     cameraY: -32,
     cameraZ: 54,
     focusZ: 136,
     gap: 7,
     glow: 0.52,
     poseId: "product-parameter-source",
-    productX: 60,
+    productX: 58,
     productY: 24,
     ringRole: "parameter-ingest-gate",
     segmentProgress: [1, 0.94, 0.9, 0.84, 0.76]
@@ -925,14 +1007,14 @@ const ft01ProductJourneyStations: Readonly<Record<number, Ft01StationConfig>> = 
   11: {
     artifactMode: "benefit",
     artifactX: 86,
-    cameraX: -86,
+    cameraX: -34,
     cameraY: -30,
     cameraZ: 66,
     focusZ: 140,
     gap: 6,
     glow: 0.54,
     poseId: "product-benefit-translation",
-    productX: 50,
+    productX: 58,
     productY: 24,
     ringRole: "benefit-translation-gate",
     segmentProgress: [1, 0.96, 0.92, 0.88, 0.8]
@@ -940,14 +1022,14 @@ const ft01ProductJourneyStations: Readonly<Record<number, Ft01StationConfig>> = 
   12: {
     artifactMode: "poster",
     artifactX: -4,
-    cameraX: -102,
+    cameraX: -34,
     cameraY: -28,
     cameraZ: 78,
     focusZ: 144,
     gap: 5,
     glow: 0.56,
     poseId: "product-poster-workbench",
-    productX: 42,
+    productX: 58,
     productY: 24,
     ringRole: "poster-output-gate",
     segmentProgress: [1, 0.98, 0.94, 0.9, 0.84]
@@ -955,14 +1037,14 @@ const ft01ProductJourneyStations: Readonly<Record<number, Ft01StationConfig>> = 
   13: {
     artifactMode: "storyboard",
     artifactX: -96,
-    cameraX: -118,
+    cameraX: -34,
     cameraY: -26,
     cameraZ: 90,
     focusZ: 148,
     gap: 4,
     glow: 0.58,
     poseId: "product-storyboard-workbench",
-    productX: 34,
+    productX: 58,
     productY: 24,
     ringRole: "storyboard-output-gate",
     segmentProgress: [1, 1, 0.96, 0.92, 0.88]
@@ -970,14 +1052,14 @@ const ft01ProductJourneyStations: Readonly<Record<number, Ft01StationConfig>> = 
   14: {
     artifactMode: "email-faq",
     artifactX: -188,
-    cameraX: -134,
+    cameraX: -34,
     cameraY: -24,
     cameraZ: 102,
     focusZ: 150,
     gap: 3,
     glow: 0.6,
     poseId: "product-service-workbench",
-    productX: 28,
+    productX: 58,
     productY: 24,
     ringRole: "email-faq-output-gate",
     segmentProgress: [1, 1, 0.98, 0.96, 0.9]
@@ -985,14 +1067,14 @@ const ft01ProductJourneyStations: Readonly<Record<number, Ft01StationConfig>> = 
   15: {
     artifactMode: "department-output",
     artifactX: -86,
-    cameraX: -150,
+    cameraX: -34,
     cameraY: -22,
     cameraZ: 118,
     focusZ: 154,
     gap: 2,
     glow: 0.64,
     poseId: "product-department-output-freeze",
-    productX: 18,
+    productX: 58,
     productY: 24,
     ringRole: "department-output-freeze",
     segmentProgress: [1, 1, 1, 0.98, 0.94]
@@ -1041,6 +1123,7 @@ function getFt01ProductJourneyTarget(beatId: BeatId, sceneNumber: number): Proof
       y: station.cameraY,
       z: station.cameraZ
     },
+    portal: createPortalTarget({ oldWorldOpacity: 1 }),
     ringGeometry: {
       gap: isFreezeBeat ? 0 : station.gap,
       glow: isFreezeBeat ? 0.72 : station.glow,
@@ -1049,7 +1132,7 @@ function getFt01ProductJourneyTarget(beatId: BeatId, sceneNumber: number): Proof
       segmentProgress: isFreezeBeat ? [1, 1, 1, 1, 1] : station.segmentProgress,
       thickness: isFreezeBeat ? 11 : 9
     },
-    world: { lightingMode: "product", tone: "paper" }
+    world: { lightingMode: "product", motionState: isFreezeBeat ? "frozen" : "active", tone: "paper" }
   };
 }
 
@@ -1097,6 +1180,279 @@ function createFt01ArtifactPatches(
       mode: station.artifactMode
     }
   };
+}
+
+function getFt02SafetyPortalTarget(beatId: BeatId): ProofTarget | undefined {
+  if (beatId !== "16.1") return undefined;
+
+  return {
+    actorPatches: {
+      "actor.integration-ring": {
+        cameraPresence: "featured",
+        rotateX: -4,
+        rotateY: 0,
+        scale: 1.08,
+        x: -22,
+        y: 0,
+        z: 220
+      },
+      "actor.product-stage": {
+        cameraPresence: "support",
+        rotateY: -14,
+        scale: 0.68,
+        x: -170,
+        y: 48,
+        z: -120
+      },
+      "actor.safety-boundary": {
+        cameraPresence: "latent",
+        scale: 0.9,
+        x: 70,
+        y: 12,
+        z: 120
+      }
+    },
+    artifactPatches: createLatentArtifactPatches("review"),
+    camera: {
+      depthBand: "near",
+      focusActorId: "actor.integration-ring",
+      perspective: 1280,
+      poseId: "camera.ft02.establish-safety-world",
+      rotationX: 0,
+      rotationY: -2,
+      rotationZ: 0,
+      scale: 1.02,
+      x: -18,
+      y: -18,
+      z: 210
+    },
+    portal: createPortalTarget({
+      edgeProgress: 1,
+      oldWorldOpacity: 0,
+      opacity: 0,
+      radius: 220,
+      safetyOpacity: 1,
+      scale: 1,
+      visible: false,
+      x: -22,
+      y: 0,
+      z: 210
+    }),
+    ringGeometry: {
+      gap: 18,
+      glow: 0.78,
+      portalRadius: 190,
+      role: "safety-boundary",
+      segmentProgress: [1, 0.88, 0.68, 0.56, 0.42],
+      thickness: 10
+    },
+    world: { lightingMode: "safety", motionState: "settled", tone: "dark" }
+  };
+}
+
+function createLatentArtifactPatches(mode: LabArtifactMode): ProofArtifactPatch {
+  return Object.fromEntries(
+    labArtifactIds.map((artifactId) => [
+      artifactId,
+      {
+        cameraPresence: "latent",
+        mode
+      }
+    ])
+  ) as ProofArtifactPatch;
+}
+
+function attachSpatialTransitionPlan(target: StageTarget, reducedMotion: boolean): StageTarget {
+  if (target.beatId !== "16.1") return target;
+
+  const frozenOutput = resolveStageTarget("15.8", { reducedMotion });
+  const plan = createFt02ForwardPortalPlan(frozenOutput, target);
+
+  return {
+    ...target,
+    transitionPlan: plan
+  };
+}
+
+function createFt02ForwardPortalPlan(from: StageTarget, to: StageTarget): SpatialTransitionPlan {
+  const w0 = waypoint("W0", "frozen-output", 0.18, snapshot(from));
+  const w1 = waypoint("W1", "portal-preview", 0.3, patchSnapshot(from, {
+    actors: {
+      "actor.integration-ring": { scale: 1.2, x: -112, y: -6, z: 70 }
+    },
+    portal: {
+      edgeProgress: 0.18,
+      oldWorldOpacity: 1,
+      opacity: 0.72,
+      radius: 138,
+      safetyOpacity: 0.44,
+      scale: 0.96,
+      visible: true,
+      x: -112,
+      y: -6,
+      z: 110
+    },
+    world: { lightingMode: "product", motionState: "portal", tone: "paper" }
+  }));
+  const w2 = waypoint("W2", "approach-ring", 0.34, patchSnapshot(from, {
+    actors: {
+      "actor.integration-ring": { scale: 1.36, x: -64, y: -2, z: 250 },
+      "actor.product-stage": { scale: 0.86, x: 14, y: 28, z: 76 }
+    },
+    artifacts: {
+      "artifact.F01": { cameraPresence: "support", scale: 1.08, x: -360, y: 90, z: 360 },
+      "artifact.F02": { cameraPresence: "support", scale: 1.04, x: 378, y: 18, z: 330 },
+      "artifact.F03": { cameraPresence: "latent", scale: 0.72, x: 40, y: 148, z: -160 }
+    },
+    camera: {
+      depthBand: "near",
+      focusActorId: "actor.integration-ring",
+      perspective: 1240,
+      poseId: "camera.ft02.approach-ring",
+      rotationX: 1,
+      rotationY: -5,
+      rotationZ: 0,
+      scale: 1.16,
+      x: -28,
+      y: -18,
+      z: 190
+    },
+    portal: {
+      edgeProgress: 0.44,
+      oldWorldOpacity: 0.74,
+      opacity: 0.86,
+      radius: 210,
+      safetyOpacity: 0.64,
+      scale: 1.18,
+      visible: true,
+      x: -64,
+      y: -2,
+      z: 250
+    },
+    world: { lightingMode: "product", motionState: "portal", tone: "paper" }
+  }));
+  const w3 = waypoint("W3", "cross-ring-edge", 0.32, patchSnapshot(from, {
+    actors: {
+      "actor.integration-ring": { scale: 1.86, x: -8, y: 0, z: 480 },
+      "actor.product-stage": { scale: 0.72, x: -96, y: 44, z: -60 }
+    },
+    artifacts: {
+      "artifact.F01": { cameraPresence: "support", scale: 1.38, x: -620, y: 70, z: 620 },
+      "artifact.F02": { cameraPresence: "support", scale: 1.32, x: 650, y: -26, z: 580 },
+      "artifact.F03": { cameraPresence: "latent", scale: 0.72, x: 120, y: 168, z: -240 }
+    },
+    camera: {
+      depthBand: "near",
+      focusActorId: "actor.integration-ring",
+      perspective: 1300,
+      poseId: "camera.ft02.cross-ring-edge",
+      rotationX: 0,
+      rotationY: -3,
+      rotationZ: 0,
+      scale: 1.32,
+      x: -14,
+      y: -16,
+      z: 360
+    },
+    portal: {
+      edgeProgress: 0.82,
+      oldWorldOpacity: 0.28,
+      opacity: 0.96,
+      radius: 430,
+      safetyOpacity: 0.9,
+      scale: 1.42,
+      visible: true,
+      x: -8,
+      y: 0,
+      z: 480
+    },
+    world: { lightingMode: "safety", motionState: "portal", tone: "dark" }
+  }));
+  const w4 = waypoint("W4", "establish-safety-world", 0.34, snapshot(to));
+
+  return {
+    fromBeatId: "15.8",
+    id: "transition-plan.ft02.forward-safety-portal",
+    toBeatId: "16.1",
+    waypoints: [w0, w1, w2, w3, w4]
+  };
+}
+
+function waypoint(
+  id: string,
+  label: string,
+  duration: number,
+  target: SpatialWaypointTarget
+): SpatialWaypoint {
+  return { duration, id, label, target };
+}
+
+function snapshot(target: StageTarget): SpatialWaypointTarget {
+  return {
+    actors: target.actors,
+    artifacts: target.artifacts,
+    camera: target.camera,
+    portal: target.portal,
+    world: target.world
+  };
+}
+
+function patchSnapshot(
+  base: StageTarget,
+  patch: {
+    readonly actors?: Partial<Record<StageActorId, Partial<LabActorTarget>>>;
+    readonly artifacts?: Partial<Record<LabArtifactId, Partial<LabArtifactTarget>>>;
+    readonly camera?: Partial<LabCameraTarget>;
+    readonly portal?: Partial<LabPortalTarget>;
+    readonly world?: LabWorldTarget;
+  }
+): SpatialWaypointTarget {
+  return {
+    actors: patchActors(base.actors, patch.actors),
+    artifacts: patchArtifacts(base.artifacts, patch.artifacts),
+    camera: { ...base.camera, ...patch.camera },
+    portal: { ...base.portal, ...patch.portal },
+    world: patch.world ?? base.world
+  };
+}
+
+function patchActors(
+  actors: LabActorTargets,
+  patches: Partial<Record<StageActorId, Partial<LabActorTarget>>> | undefined
+): LabActorTargets {
+  if (!patches) return actors;
+
+  return Object.fromEntries(
+    labActorIds.map((actorId) => {
+      const actor = actors[actorId];
+      const patch = patches[actorId];
+      return [actorId, patch ? { ...actor, ...patch } : actor];
+    })
+  ) as LabActorTargets;
+}
+
+function patchArtifacts(
+  artifacts: Readonly<Record<LabArtifactId, LabArtifactTarget>>,
+  patches: Partial<Record<LabArtifactId, Partial<LabArtifactTarget>>> | undefined
+): Readonly<Record<LabArtifactId, LabArtifactTarget>> {
+  if (!patches) return artifacts;
+
+  return Object.fromEntries(
+    labArtifactIds.map((artifactId) => {
+      const artifact = artifacts[artifactId];
+      const patch = patches[artifactId];
+      const patched = patch ? { ...artifact, ...patch } : artifact;
+      const visible = isCameraVisible(patched.cameraPresence);
+      return [
+        artifactId,
+        {
+          ...patched,
+          opacity: visible ? patched.opacity || artifact.opacity || 0.72 : 0,
+          visible
+        }
+      ];
+    })
+  ) as Readonly<Record<LabArtifactId, LabArtifactTarget>>;
 }
 
 function getFixA4ProofTarget(beatId: BeatId): ProofTarget | undefined {

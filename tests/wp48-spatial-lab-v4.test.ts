@@ -62,11 +62,12 @@ test("WP-49 resolves a complete StageTarget from any checked beat without click 
 
   assert.equal(target.beatId, "16.1");
   assert.equal(target.movementKind, "spatial");
-  assert.equal(target.camera.poseId, "camera.lab.safety-forward");
+  assert.equal(target.camera.poseId, "camera.ft02.establish-safety-world");
   assert.equal(target.actors["actor.integration-ring"].actorId, "actor.integration-ring");
   assert.equal(target.actors["actor.product-stage"].actorId, "actor.product-stage");
   assert.equal(target.artifacts["artifact.F01"].artifactId, "artifact.F01");
   assert.equal(target.transition?.id, "transition.15-16.forward-safety-portal");
+  assert.equal(target.transitionPlan?.id, "transition-plan.ft02.forward-safety-portal");
 });
 
 test("WP-49 reduced motion patch keeps identity and removes camera rotation", () => {
@@ -106,18 +107,19 @@ test("WP-51 SR-04 keeps the ring anchor and product actor identity through 08 to
   assert.equal(turnRing.geometry.segmentProgress.length, 5);
 });
 
-test("WP-51 SR-05 keeps metadata only until Gate A validates the spatial model", () => {
+test("WP-51 SR-05 uses the FT-02 waypoint plan without changing actor identity", () => {
   const freeze = resolveStageTarget("15.8");
   const portal = resolveStageTarget("16.1");
   const visibleArtifacts = Object.values(portal.artifacts).filter((artifact) => artifact.visible);
 
   assert.equal(portal.transition?.gate, "SR-05");
-  assert.equal(portal.transition.acceptanceFocus[0], "Metadata only until Gate A passes");
+  assert.equal(portal.transition.acceptanceFocus[0], "FT-02 forward safety portal waypoints are active");
   assert.equal(freeze.actors["actor.product-stage"].actorId, portal.actors["actor.product-stage"].actorId);
   assert.ok(portal.actors["actor.product-stage"].opacity > 0.5);
   assert.equal(portal.actors["actor.integration-ring"].geometry.role, "safety-boundary");
   assert.ok(visibleArtifacts.length <= 3);
   assert.ok(portal.camera.scale < 2);
+  assert.equal(portal.transitionPlan?.waypoints.length, 5);
 });
 
 test("WP-51 SR-06 keeps ActionPath identity with metadata-only final loop endpoint", () => {

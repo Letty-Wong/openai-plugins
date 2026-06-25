@@ -23,7 +23,7 @@ test("WP-56 review actor wrappers are transparent and debug bounds are debug-onl
 
   assert.match(styleSource, /\.spatial-lab-actor \{[\s\S]*background: transparent;[\s\S]*border: 0;[\s\S]*padding: 0;/);
   assert.match(styleSource, /\.spatial-lab-root\[data-lab-mode="debug"\] \.spatial-lab-actor::before/);
-  assert.match(styleSource, /\.spatial-lab-root\[data-lab-mode="review"\] \.spatial-lab-world-atmosphere \{[\s\S]*display: none;/);
+  assert.match(styleSource, /\.spatial-lab-root\[data-lab-mode="review"\] \.spatial-lab-world-atmosphere \{[\s\S]*pointer-events: none;/);
 });
 
 test("WP-56 proof route has one featured actor and bounded support", () => {

@@ -16,7 +16,7 @@ import { IntegrationRingGeometry } from "@/presentation/stage/IntegrationRing";
 import { ProductStage } from "@/presentation/stage/ProductStage";
 import { ActionPathGreybox } from "@/presentation/spatial-lab/ActionPathGreybox";
 import { PoseTransitionRuntime } from "@/presentation/spatial-lab/PoseTransitionRuntime";
-import type { SpatialLabMode } from "@/presentation/spatial-lab/SpatialLabStage";
+import type { SpatialLabMode } from "@/presentation/spatial-lab/PresentationStageV4";
 import {
   labActorIds,
   labArtifactIds,
@@ -35,15 +35,15 @@ import {
 
 const sampleBeatIds = ["01.1", "08.7", "09.1", "15.8", "16.1", "20.10", "21.1"] as const satisfies readonly BeatId[];
 
-type SpatialLabClientStageProps = {
+type PresentationStageClientV4Props = {
   readonly initialBeatId: BeatId;
   readonly initialMode: SpatialLabMode;
 };
 
-export function SpatialLabClientStage({
+export function PresentationStageClientV4({
   initialBeatId,
   initialMode
-}: SpatialLabClientStageProps) {
+}: PresentationStageClientV4Props) {
   const [state, setState] = useState(() => createInitialPresentationState(initialBeatId));
   const [mode, setMode] = useState<SpatialLabMode>(initialMode);
   const viewportRef = useRef<HTMLElement | null>(null);
@@ -182,6 +182,8 @@ export function SpatialLabClientStage({
     </main>
   );
 }
+
+export { PresentationStageClientV4 as SpatialLabClientStage };
 
 function WorldCamera({
   children,

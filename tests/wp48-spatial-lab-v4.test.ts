@@ -5,11 +5,11 @@ import test from "node:test";
 import { domTreeText, ownershipRows } from "../src/presentation/spatial-lab/SpatialLabStage";
 import { resolveStageTarget } from "../src/presentation/spatial-lab/stage-target";
 
-test("WP-48 exposes /spatial-lab as the V4 true spatial lab route", () => {
+test("WP-48 exposes /spatial-lab as the V4 debug alias route", () => {
   const pageSource = readFileSync("app/spatial-lab/page.tsx", "utf8");
   const labSource = readFileSync("src/presentation/spatial-lab/SpatialLabClientStage.tsx", "utf8");
 
-  assert.match(pageSource, /SpatialLabStage/);
+  assert.match(pageSource, /PresentationStageV4/);
   assert.match(pageSource, /searchParams/);
   assert.match(pageSource, /beatById\.has/);
   assert.match(labSource, /data-spatial-lab-version="V4"/);
@@ -97,12 +97,12 @@ test("WP-51 SR-04 keeps the ring anchor and product actor identity through 08 to
   const turnRing = turn.actors["actor.integration-ring"];
 
   assert.equal(turn.transition?.gate, "SR-04");
-  assert.equal(turn.transition.acceptanceFocus[0], "Metadata only until Gate A passes");
+  assert.equal(turn.transition.acceptanceFocus[0], "FT-01 horizontal product journey endpoint is active");
   assert.equal(beforeTurn.actors["actor.product-stage"].actorId, turn.actors["actor.product-stage"].actorId);
   assert.equal(turn.actors["actor.product-stage"].visible, true);
   assert.equal(turn.actors["actor.integration-ring"].visible, true);
   assert.equal(turn.actors["actor.integration-ring"].cameraPresence, "support");
-  assert.equal(turnRing.geometry.role, "product-gate");
+  assert.equal(turnRing.geometry.role, "product-source-gate");
   assert.equal(turnRing.geometry.segmentProgress.length, 5);
 });
 

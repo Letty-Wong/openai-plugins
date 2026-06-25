@@ -1,7 +1,9 @@
 import { beatById } from "@/content/beats";
-import { SpatialLabStage } from "@/presentation/spatial-lab/SpatialLabStage";
 import type { BeatId } from "@/presentation/core/state-types";
-import type { SpatialLabMode } from "@/presentation/spatial-lab/SpatialLabStage";
+import {
+  PresentationStageV4,
+  type SpatialLabMode
+} from "@/presentation/spatial-lab/PresentationStageV4";
 
 type SpatialLabPageProps = {
   readonly searchParams?: Promise<{
@@ -17,7 +19,7 @@ export default async function SpatialLabPage({
   const beatId = toValidBeatId(params?.beat);
   const mode = toValidMode(params?.mode);
 
-  return <SpatialLabStage initialBeatId={beatId} initialMode={mode} />;
+  return <PresentationStageV4 initialBeatId={beatId} initialMode={mode} />;
 }
 
 function toValidBeatId(value: string | undefined): BeatId | undefined {

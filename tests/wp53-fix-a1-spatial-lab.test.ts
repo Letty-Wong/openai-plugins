@@ -68,12 +68,14 @@ test("WP-53 FIX-A1 uses stage-container center coordinates instead of viewport u
 test("WP-53 FIX-A1 assigns perspective to ScreenViewport and exposes review/debug modes", () => {
   const pageSource = readFileSync("app/spatial-lab/page.tsx", "utf8");
   const stageSource = readFileSync("src/presentation/spatial-lab/SpatialLabStage.tsx", "utf8");
+  const productionStageSource = readFileSync("src/presentation/spatial-lab/PresentationStageV4.tsx", "utf8");
   const labSource = readFileSync("src/presentation/spatial-lab/SpatialLabClientStage.tsx", "utf8");
   const styleSource = readFileSync("src/styles/spatial-lab.css", "utf8");
 
   assert.match(pageSource, /readonly mode\?: string/);
   assert.match(pageSource, /toValidMode/);
-  assert.match(stageSource, /SpatialLabMode = "review" \| "debug"/);
+  assert.match(stageSource, /PresentationStageV4 as SpatialLabStage/);
+  assert.match(productionStageSource, /SpatialLabMode = "review" \| "debug"/);
   assert.match(labSource, /data-lab-mode=\{mode\}/);
   assert.match(labSource, /style=\{initialViewportStyle\(initialTargetRef\.current\)\}/);
   assert.match(labSource, /"--lab-camera-perspective": `\$\{target\.camera\.perspective\}px`/);

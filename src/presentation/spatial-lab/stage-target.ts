@@ -22,6 +22,10 @@ export type LabArtifactId =
 export type LabArtifactMode =
   | "source"
   | "benefit"
+  | "poster"
+  | "storyboard"
+  | "email-faq"
+  | "department-output"
   | "output"
   | "review"
   | "route"
@@ -166,7 +170,11 @@ const spatialBeatIds = [
   "08.7",
   "09.1",
   "10.1",
+  "11.1",
   "12.1",
+  "13.1",
+  "14.1",
+  "15.1",
   "15.8",
   "16.1",
   "18.9",
@@ -234,8 +242,8 @@ const movementKindByBeatId: Readonly<Record<BeatId, BeatMovementKind>> = Object.
 const transitionMetadataByBeatId: Readonly<Partial<Record<BeatId, LabTransitionTarget>>> = {
   "09.1": {
     acceptanceFocus: [
-      "Metadata only until Gate A passes",
-      "No transition waypoint is implemented in FIX-A3",
+      "FT-01 horizontal product journey endpoint is active",
+      "ProductStage stays near the visual center",
       "Ring and ProductStage keep stable actor ids"
     ],
     gate: "SR-04",
@@ -271,8 +279,14 @@ type ProofActorPatch = Partial<Record<StageActorId, Partial<PoseSeed> & {
   readonly cameraPresence?: CameraPresence;
 }>>;
 
+type ProofArtifactPatch = Partial<Record<LabArtifactId, Partial<Pick<
+  LabArtifactTarget,
+  "cameraPresence" | "mode" | "scale" | "x" | "y" | "z"
+>>>>;
+
 type ProofTarget = {
   readonly actorPatches: ProofActorPatch;
+  readonly artifactPatches?: ProofArtifactPatch;
   readonly camera: LabCameraTarget;
   readonly ringGeometry: RingGeometryTarget;
   readonly world: LabWorldTarget;
@@ -424,8 +438,8 @@ const fixA4ProofTargets: Readonly<Record<(typeof fixA4ProofBeatIds)[number], Pro
   },
   "08.7": {
     actorPatches: {
-      "actor.integration-ring": { cameraPresence: "support", scale: 1.06, x: -126, y: -76, z: -12 },
-      "actor.product-stage": { cameraPresence: "featured", scale: 0.94, x: 96, y: -22, z: 110 }
+      "actor.integration-ring": { cameraPresence: "support", scale: 1.06, x: -126, y: -20, z: -12 },
+      "actor.product-stage": { cameraPresence: "featured", scale: 0.94, x: 96, y: 24, z: 110 }
     },
     camera: {
       depthBand: "mid",
@@ -437,7 +451,7 @@ const fixA4ProofTargets: Readonly<Record<(typeof fixA4ProofBeatIds)[number], Pro
       rotationZ: -1,
       scale: 1.02,
       x: -34,
-      y: -186,
+      y: -34,
       z: 26
     },
     ringGeometry: {
@@ -467,7 +481,7 @@ export function resolveStageTarget(
   }
 
   const routePhase = getLabRoutePhase(scene.sceneNumber);
-  const proofTarget = getFixA4ProofTarget(beatId);
+  const proofTarget = getExplicitStageTarget(beatId, scene.sceneNumber);
   const base = createBaseTarget(beatId, routePhase, scene.sceneNumber, options.reducedMotion ?? false, proofTarget);
   const scenePatched = applyScenePatch(base, scene.sceneNumber, scene.screenCopy);
   const beatPatched = applyBeatPatch(scenePatched, beatId, beat.screenCopy);
@@ -493,7 +507,7 @@ function createBaseTarget(
 
   return {
     actors: createActorTargets(beatId, routePhase, proofTarget),
-    artifacts: createArtifactTargets(beatId, routePhase),
+    artifacts: createArtifactTargets(beatId, routePhase, proofTarget),
     beatId,
     camera: proofTarget?.camera ?? {
       ...cameraTargetByPhase[routePhase],
@@ -534,12 +548,12 @@ function applyScenePatch(target: StageTarget, sceneNumber: number, screenCopy: S
   };
 }
 
-function applyBeatPatch(target: StageTarget, _beatId: BeatId, screenCopy: ScreenCopy): StageTarget {
+function applyBeatPatch(target: StageTarget, beatId: BeatId, screenCopy: ScreenCopy): StageTarget {
   return {
     ...target,
     copy: {
       ...target.copy,
-      caption: screenCopy.finalLine ?? target.copy.caption,
+      caption: beatId === "15.8" ? "快，还不够。" : screenCopy.finalLine ?? target.copy.caption,
       support: screenCopy.support ?? target.copy.support
     }
   };
@@ -631,30 +645,34 @@ function createActorTargets(
 
 function createArtifactTargets(
   beatId: BeatId,
-  routePhase: RoutePhase
+  routePhase: RoutePhase,
+  proofTarget: ProofTarget | undefined
 ): Readonly<Record<LabArtifactId, LabArtifactTarget>> {
   const mode = getArtifactMode(routePhase);
-  const visible = isAtOrAfter(beatId, "10.1");
-  const lifecycle = getArtifactLifecycle(beatId, visible);
   const phaseOffset = artifactPhaseOffsetByRoute[routePhase];
 
   return Object.fromEntries(
     labArtifactIds.map((artifactId, index) => {
       const base = artifactBasePoses[index];
-      const cameraPresence = visible && index < 3 ? "support" : visible ? "latent" : "offscreen";
+      const proofPatch = proofTarget?.artifactPatches?.[artifactId];
+      const lifecycleVisible = isAtOrAfter(beatId, "10.1") || proofPatch !== undefined;
+      const lifecycle = getArtifactLifecycle(beatId, lifecycleVisible);
+      const cameraPresence = proofPatch?.cameraPresence
+        ?? (lifecycleVisible && index < 3 ? "support" : lifecycleVisible ? "latent" : "offscreen");
+      const visible = isCameraVisible(cameraPresence);
       return [
         artifactId,
         {
           artifactId,
           cameraPresence,
           lifecycle,
-          mode,
-          opacity: isCameraVisible(cameraPresence) ? 0.74 - index * 0.06 : 0,
-          scale: isCameraVisible(cameraPresence) ? phaseOffset.scale : 0.72,
-          visible: isCameraVisible(cameraPresence),
-          x: isCameraVisible(cameraPresence) ? base.x + phaseOffset.x : base.x + phaseOffset.x + 460,
-          y: isCameraVisible(cameraPresence) ? base.y + phaseOffset.y : base.y + phaseOffset.y + 240,
-          z: isCameraVisible(cameraPresence) ? base.z + phaseOffset.z : -420
+          mode: proofPatch?.mode ?? mode,
+          opacity: visible ? 0.74 - index * 0.06 : 0,
+          scale: proofPatch?.scale ?? (visible ? phaseOffset.scale : 0.72),
+          visible,
+          x: proofPatch?.x ?? (visible ? base.x + phaseOffset.x : base.x + phaseOffset.x + 460),
+          y: proofPatch?.y ?? (visible ? base.y + phaseOffset.y : base.y + phaseOffset.y + 240),
+          z: proofPatch?.z ?? (visible ? base.z + phaseOffset.z : -420)
         }
       ];
     })
@@ -853,6 +871,234 @@ function artifactPoseForEquality(artifact: LabArtifactTarget) {
   };
 }
 
+function getExplicitStageTarget(beatId: BeatId, sceneNumber: number): ProofTarget | undefined {
+  return getFixA4ProofTarget(beatId) ?? getFt01ProductJourneyTarget(beatId, sceneNumber);
+}
+
+type Ft01StationConfig = {
+  readonly artifactMode: LabArtifactMode;
+  readonly artifactX: number;
+  readonly cameraX: number;
+  readonly cameraY: number;
+  readonly cameraZ: number;
+  readonly focusZ: number;
+  readonly gap: number;
+  readonly glow: number;
+  readonly poseId: string;
+  readonly productX: number;
+  readonly productY: number;
+  readonly ringRole: string;
+  readonly segmentProgress: RingSegmentProgress;
+};
+
+const ft01ProductJourneyStations: Readonly<Record<number, Ft01StationConfig>> = {
+  9: {
+    artifactMode: "source",
+    artifactX: 268,
+    cameraX: -54,
+    cameraY: -34,
+    cameraZ: 42,
+    focusZ: 132,
+    gap: 8,
+    glow: 0.5,
+    poseId: "product-source-station",
+    productX: 72,
+    productY: 24,
+    ringRole: "product-source-gate",
+    segmentProgress: [0.98, 0.92, 0.86, 0.8, 0.7]
+  },
+  10: {
+    artifactMode: "source",
+    artifactX: 178,
+    cameraX: -70,
+    cameraY: -32,
+    cameraZ: 54,
+    focusZ: 136,
+    gap: 7,
+    glow: 0.52,
+    poseId: "product-parameter-source",
+    productX: 60,
+    productY: 24,
+    ringRole: "parameter-ingest-gate",
+    segmentProgress: [1, 0.94, 0.9, 0.84, 0.76]
+  },
+  11: {
+    artifactMode: "benefit",
+    artifactX: 86,
+    cameraX: -86,
+    cameraY: -30,
+    cameraZ: 66,
+    focusZ: 140,
+    gap: 6,
+    glow: 0.54,
+    poseId: "product-benefit-translation",
+    productX: 50,
+    productY: 24,
+    ringRole: "benefit-translation-gate",
+    segmentProgress: [1, 0.96, 0.92, 0.88, 0.8]
+  },
+  12: {
+    artifactMode: "poster",
+    artifactX: -4,
+    cameraX: -102,
+    cameraY: -28,
+    cameraZ: 78,
+    focusZ: 144,
+    gap: 5,
+    glow: 0.56,
+    poseId: "product-poster-workbench",
+    productX: 42,
+    productY: 24,
+    ringRole: "poster-output-gate",
+    segmentProgress: [1, 0.98, 0.94, 0.9, 0.84]
+  },
+  13: {
+    artifactMode: "storyboard",
+    artifactX: -96,
+    cameraX: -118,
+    cameraY: -26,
+    cameraZ: 90,
+    focusZ: 148,
+    gap: 4,
+    glow: 0.58,
+    poseId: "product-storyboard-workbench",
+    productX: 34,
+    productY: 24,
+    ringRole: "storyboard-output-gate",
+    segmentProgress: [1, 1, 0.96, 0.92, 0.88]
+  },
+  14: {
+    artifactMode: "email-faq",
+    artifactX: -188,
+    cameraX: -134,
+    cameraY: -24,
+    cameraZ: 102,
+    focusZ: 150,
+    gap: 3,
+    glow: 0.6,
+    poseId: "product-service-workbench",
+    productX: 28,
+    productY: 24,
+    ringRole: "email-faq-output-gate",
+    segmentProgress: [1, 1, 0.98, 0.96, 0.9]
+  },
+  15: {
+    artifactMode: "department-output",
+    artifactX: -86,
+    cameraX: -150,
+    cameraY: -22,
+    cameraZ: 118,
+    focusZ: 154,
+    gap: 2,
+    glow: 0.64,
+    poseId: "product-department-output-freeze",
+    productX: 18,
+    productY: 24,
+    ringRole: "department-output-freeze",
+    segmentProgress: [1, 1, 1, 0.98, 0.94]
+  }
+};
+
+function getFt01ProductJourneyTarget(beatId: BeatId, sceneNumber: number): ProofTarget | undefined {
+  if (!isBetween(beatId, "09.1", "15.8")) return undefined;
+
+  const station = ft01ProductJourneyStations[sceneNumber];
+  if (!station) return undefined;
+
+  const isFreezeBeat = beatId === "15.8";
+  const poseSuffix = isFreezeBeat ? "freeze" : station.poseId;
+
+  return {
+    actorPatches: {
+      "actor.integration-ring": {
+        cameraPresence: "support",
+        rotateY: -10,
+        scale: isFreezeBeat ? 1.14 : 1.08,
+        x: -112,
+        y: -6,
+        z: 18
+      },
+      "actor.product-stage": {
+        cameraPresence: "featured",
+        rotateY: -10,
+        scale: isFreezeBeat ? 0.98 : 0.94,
+        x: station.productX,
+        y: station.productY,
+        z: station.focusZ
+      }
+    },
+    artifactPatches: createFt01ArtifactPatches(station, isFreezeBeat),
+    camera: {
+      depthBand: "near",
+      focusActorId: "actor.product-stage",
+      perspective: 1200,
+      poseId: `camera.ft01.${poseSuffix}`,
+      rotationX: isFreezeBeat ? 1 : 2,
+      rotationY: -9,
+      rotationZ: 0,
+      scale: isFreezeBeat ? 1.08 : 1.05,
+      x: station.cameraX,
+      y: station.cameraY,
+      z: station.cameraZ
+    },
+    ringGeometry: {
+      gap: isFreezeBeat ? 0 : station.gap,
+      glow: isFreezeBeat ? 0.72 : station.glow,
+      portalRadius: isFreezeBeat ? 164 : 150,
+      role: station.ringRole,
+      segmentProgress: isFreezeBeat ? [1, 1, 1, 1, 1] : station.segmentProgress,
+      thickness: isFreezeBeat ? 11 : 9
+    },
+    world: { lightingMode: "product", tone: "paper" }
+  };
+}
+
+function createFt01ArtifactPatches(
+  station: Ft01StationConfig,
+  isFreezeBeat: boolean
+): ProofArtifactPatch {
+  const y = isFreezeBeat ? 116 : 126;
+  const z = isFreezeBeat ? 130 : 104;
+  return {
+    "artifact.F01": {
+      cameraPresence: "support",
+      mode: station.artifactMode,
+      scale: isFreezeBeat ? 0.94 : 0.88,
+      x: station.artifactX,
+      y,
+      z
+    },
+    "artifact.F02": {
+      cameraPresence: "support",
+      mode: station.artifactMode,
+      scale: isFreezeBeat ? 0.9 : 0.84,
+      x: station.artifactX + 76,
+      y: y - 42,
+      z: z + 18
+    },
+    "artifact.F03": {
+      cameraPresence: "support",
+      mode: station.artifactMode,
+      scale: isFreezeBeat ? 0.86 : 0.8,
+      x: station.artifactX + 152,
+      y,
+      z: z + 36
+    },
+    "artifact.F04": {
+      cameraPresence: "latent",
+      mode: station.artifactMode
+    },
+    "artifact.F05": {
+      cameraPresence: "latent",
+      mode: station.artifactMode
+    },
+    "artifact.F06": {
+      cameraPresence: "latent",
+      mode: station.artifactMode
+    }
+  };
+}
+
 function getFixA4ProofTarget(beatId: BeatId): ProofTarget | undefined {
   if (!fixA4ProofBeatIdSet.has(beatId)) return undefined;
   return fixA4ProofTargets[beatId as (typeof fixA4ProofBeatIds)[number]];
@@ -921,6 +1167,11 @@ function getLabRoutePhase(sceneNumber: number): RoutePhase {
 
 function isAtOrAfter(beatId: BeatId, firstBeatId: BeatId) {
   return getBeatOrder(beatId) >= getBeatOrder(firstBeatId);
+}
+
+function isBetween(beatId: BeatId, firstBeatId: BeatId, lastBeatId: BeatId) {
+  const order = getBeatOrder(beatId);
+  return order >= getBeatOrder(firstBeatId) && order <= getBeatOrder(lastBeatId);
 }
 
 function getBeatOrder(beatId: BeatId) {

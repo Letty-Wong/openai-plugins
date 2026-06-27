@@ -23,6 +23,10 @@
 - VP-02：21 幕讲述补齐。
   - 每个 Scene 保留明确章节/场景上下文。
   - 非关键 Beat 继续以稳定观察和轻量强调为主，不为 144 个 Beat 单独做进场动画。
+- 客户演示关键帧强化。
+  - `15.8` 冻结端点将“快，还不够。”保持为唯一主视觉标题，并把 Ring、Product、部门输出下沉分层，减少互相压叠。
+  - `20.10` 行动路径升级为可读主视觉，增加“今天 / 30 分钟 / 3 天 / 3 个月”时间节点。
+  - `21.1` CTA 占位升级为“演示后行动”模块，保留资料清单、场景诊断、样板计划三项占位行动，不生成真实二维码。
 
 ## 仍为占位的内容
 
@@ -59,13 +63,14 @@
 
 - `npm run lint`：通过。
 - `npm run typecheck`：通过。第一次与 `npm run build` 并行运行时因为 `.next/types` 正在重建出现读写竞争，串行重跑后通过。
-- `npm run test`：通过，202 项通过。
+- `npm run test`：通过，203 项通过。
 - `npm run build`：通过。
 
 ## 本轮代码实现提交
 
 - `df2e962`：Complete V4 safety action and finale path
 - `eac151c`：Polish V4 customer demo shell
+- `cee0fd5`：Package V4 customer demo evidence
 
 ## 下一步建议
 

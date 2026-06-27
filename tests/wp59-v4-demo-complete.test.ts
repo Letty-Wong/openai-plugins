@@ -56,6 +56,7 @@ test("WP-59 FT-04 establishes the final pullback loop with placeholder CTA only"
 
 test("WP-59 customer demo actors have audience bodies without engineering labels in review", () => {
   const labSource = readFileSync("src/presentation/spatial-lab/SpatialLabClientStage.tsx", "utf8");
+  const actionPathSource = readFileSync("src/presentation/spatial-lab/ActionPathGreybox.tsx", "utf8");
   const runtimeSource = readFileSync("src/presentation/spatial-lab/PoseTransitionRuntime.tsx", "utf8");
   const cssSource = readFileSync("src/styles/spatial-lab.css", "utf8");
 
@@ -65,10 +66,15 @@ test("WP-59 customer demo actors have audience bodies without engineering labels
   assert.match(labSource, /function ScenarioRadarGreybox/);
   assert.match(labSource, /function CtaDockGreybox/);
   assert.match(labSource, /真实二维码待确认/);
+  assert.match(labSource, /演示后行动/);
+  assert.match(labSource, /资料清单/);
+  assert.match(actionPathSource, /30 分钟/);
   assert.match(runtimeSource, /previousTarget\.beatId === "20\.10" && target\.beatId === "21\.1"/);
   assert.match(runtimeSource, /previousTarget\.beatId === "21\.1" && target\.beatId === "20\.10"/);
   assert.match(cssSource, /\.spatial-lab-cta-dock-geometry/);
   assert.match(cssSource, /\.spatial-lab-scenario-radar-geometry/);
+  assert.match(cssSource, /\.action-path-labels/);
+  assert.match(cssSource, /\.cta-action-lines/);
   assert.match(cssSource, /\.spatial-lab-root\[data-lab-mode="review"\] \.artifact-debug-id/);
 });
 
@@ -84,4 +90,13 @@ test("WP-59 VP-01 adds customer-facing scene context and premium placeholder pro
   assert.match(cssSource, /\.product-visual-backplate/);
   assert.match(cssSource, /\.product-visual-glow/);
   assert.doesNotMatch(labSource, /qr\.png|QRCode|真实报名链接/);
+});
+
+test("WP-59 VP-02 keeps the freeze headline clear of the product anchor", () => {
+  const freeze = resolveStageTarget("15.8");
+  const cssSource = readFileSync("src/styles/spatial-lab.css", "utf8");
+
+  assert.ok(Math.abs(freeze.camera.x + freeze.actors["actor.product-stage"].x) <= 40);
+  assert.ok(freeze.actors["actor.product-stage"].y >= 96);
+  assert.match(cssSource, /data-world-motion-state="frozen"[\s\S]*top: 23%/);
 });

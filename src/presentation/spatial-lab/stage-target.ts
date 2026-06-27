@@ -1120,8 +1120,8 @@ function getFt01ProductJourneyTarget(beatId: BeatId, sceneNumber: number): Proof
         cameraPresence: "support",
         rotateY: isFreezeBeat ? -4 : -10,
         scale: isFreezeBeat ? 0.82 : 1.08,
-        x: isFreezeBeat ? -204 : -112,
-        y: isFreezeBeat ? 8 : -6,
+        x: isFreezeBeat ? -218 : -112,
+        y: isFreezeBeat ? 78 : -6,
         z: isFreezeBeat ? -48 : 18
       },
       "actor.product-stage": {
@@ -1129,7 +1129,7 @@ function getFt01ProductJourneyTarget(beatId: BeatId, sceneNumber: number): Proof
         rotateY: -10,
         scale: isFreezeBeat ? 0.92 : 0.94,
         x: isFreezeBeat ? 72 : station.productX,
-        y: isFreezeBeat ? 34 : station.productY,
+        y: isFreezeBeat ? 100 : station.productY,
         z: isFreezeBeat ? 168 : station.focusZ
       }
     },
@@ -1164,7 +1164,7 @@ function createFt01ArtifactPatches(
   station: Ft01StationConfig,
   isFreezeBeat: boolean
 ): ProofArtifactPatch {
-  const y = isFreezeBeat ? 186 : 126;
+  const y = isFreezeBeat ? 228 : 126;
   const z = isFreezeBeat ? 62 : 104;
   const freezeX = -222;
   return {
@@ -1600,9 +1600,9 @@ function createActionRouteTarget(beatId: BeatId): ProofTarget {
       },
       "actor.action-path": {
         cameraPresence: "featured",
-        scale: isFinalActionBeat ? 1.08 : 1,
-        x: isFinalActionBeat ? 26 : 8,
-        y: isFinalActionBeat ? 104 : 120,
+        scale: isFinalActionBeat ? 1.2 : 1,
+        x: isFinalActionBeat ? 82 : 8,
+        y: isFinalActionBeat ? 68 : 120,
         z: isFinalActionBeat ? 210 : 160
       }
     },
@@ -1667,16 +1667,16 @@ function getFt04FinaleTarget(beatId: BeatId): ProofTarget | undefined {
       "actor.action-path": {
         cameraPresence: "support",
         rotateX: 8,
-        scale: 0.94,
-        x: -4,
-        y: 110,
+        scale: 1.02,
+        x: -18,
+        y: 96,
         z: 48
       },
       "actor.cta-dock": {
         cameraPresence: "featured",
-        scale: 1,
-        x: 228,
-        y: -24,
+        scale: 1.12,
+        x: 252,
+        y: -32,
         z: 172
       }
     },

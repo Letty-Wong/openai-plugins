@@ -770,22 +770,48 @@
 }
 
 .spatial-lab-action-path-geometry {
+  background:
+    linear-gradient(135deg, rgba(255, 250, 239, 0.58), rgba(214, 202, 184, 0.16)),
+    rgba(230, 219, 200, 0.6);
+  border: 1px solid rgba(31, 29, 25, 0.16);
+  box-shadow:
+    0 24px 64px rgba(31, 29, 25, 0.16),
+    inset 0 1px 0 rgba(255, 250, 239, 0.44);
+  display: grid;
+  gap: 0;
+  height: 100%;
+  padding: 16px 18px 12px;
+  position: relative;
+  width: 100%;
+}
+
+.spatial-lab-action-path-geometry svg {
   display: block;
   height: 100%;
   overflow: visible;
   width: 100%;
 }
 
+.action-path-kicker {
+  color: #d65f51;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0;
+  position: absolute;
+  top: 12px;
+  left: 16px;
+}
+
 .spatial-lab-action-path-line {
   fill: none;
-  stroke: rgba(242, 234, 220, 0.76);
+  stroke: rgba(255, 250, 239, 0.92);
   stroke-linecap: round;
-  stroke-width: 5;
+  stroke-width: 7;
 }
 
 .spatial-lab-action-path-node {
   fill: #141311;
-  stroke: rgba(242, 234, 220, 0.84);
+  stroke: rgba(255, 250, 239, 0.9);
   stroke-width: 4;
 }
 
@@ -794,12 +820,32 @@
   stroke: rgba(242, 234, 220, 0.9);
 }
 
+.action-path-labels {
+  bottom: 12px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  left: 16px;
+  position: absolute;
+  right: 16px;
+}
+
+.action-path-labels span {
+  border-top: 1px solid rgba(31, 29, 25, 0.18);
+  color: #6f6659;
+  font-size: 12px;
+  letter-spacing: 0;
+  padding-top: 7px;
+  text-align: center;
+}
+
 .spatial-lab-source-packet-geometry,
 .spatial-lab-fact-benefit-geometry,
 .spatial-lab-output-cards-geometry,
 .spatial-lab-human-review-geometry,
 .spatial-lab-action-confirm-geometry,
 .spatial-lab-cta-dock-geometry {
+  align-content: start;
   background:
     linear-gradient(135deg, rgba(242, 234, 220, 0.16), rgba(242, 234, 220, 0.04)),
     rgba(20, 19, 17, 0.74);
@@ -814,6 +860,20 @@
   padding: 18px;
   position: relative;
   width: 100%;
+}
+
+.spatial-lab-cta-dock-geometry {
+  min-width: 280px;
+}
+
+.spatial-lab-cta-dock-geometry::after {
+  background: linear-gradient(90deg, #d65f51, transparent);
+  bottom: 0;
+  content: "";
+  height: 3px;
+  left: 0;
+  position: absolute;
+  right: 0;
 }
 
 .spatial-lab-viewport[data-world-tone="paper"] .spatial-lab-source-packet-geometry,
@@ -1083,6 +1143,19 @@
   border-color: var(--lab-surface-border);
 }
 
+.cta-action-lines {
+  display: grid;
+  gap: 6px;
+}
+
+.cta-action-lines span {
+  border: 1px solid var(--lab-surface-border);
+  color: var(--lab-muted);
+  font-size: 12px;
+  letter-spacing: 0;
+  padding: 7px 9px;
+}
+
 .spatial-lab-artifact-system {
   inset: 0;
   position: absolute;
@@ -1286,13 +1359,13 @@
   left: 50%;
   max-width: 760px;
   text-align: center;
-  top: 38%;
+  top: 23%;
   transform: translate3d(-50%, -50%, 320px);
 }
 
 .spatial-lab-world-typography[data-world-motion-state="frozen"] strong {
   color: #26221c;
-  font-size: 62px;
+  font-size: 58px;
   line-height: 1;
 }
 

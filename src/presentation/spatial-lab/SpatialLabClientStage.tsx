@@ -668,12 +668,17 @@ function CtaDockGreybox() {
   return (
     <section className="spatial-lab-cta-dock-geometry" data-actor-geometry="cta-dock">
       <span className="actor-body-kicker">下一步</span>
-      <strong>CTA 占位</strong>
+      <strong>演示后行动</strong>
       <div className="cta-placeholder-grid" aria-hidden="true">
         <span />
         <span />
         <span />
         <span />
+      </div>
+      <div className="cta-action-lines" aria-hidden="true">
+        <span>资料清单</span>
+        <span>场景诊断</span>
+        <span>样板计划</span>
       </div>
       <small>真实二维码待确认</small>
     </section>

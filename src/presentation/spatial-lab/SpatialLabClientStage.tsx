@@ -174,13 +174,13 @@ export function PresentationStageClientV4({
         <WorldCamera initialTarget={initialTargetRef.current} target={target}>
           <WorldSpace>
             <WorldAtmosphere target={target} />
-            <SceneContextLayer target={target} />
             <PortalPreviewLayer initialTarget={initialTargetRef.current} target={target} />
             <PersistentActors initialTarget={initialTargetRef.current} target={target} />
             <ArtifactSystem initialTarget={initialTargetRef.current} target={target} />
             <WorldTypography target={target} />
           </WorldSpace>
         </WorldCamera>
+        <SceneContextLayer target={target} />
       </section>
 
       <ScreenCopyLayer target={target} />
@@ -503,7 +503,7 @@ function SceneContextLayer({ target }: { readonly target: StageTarget }) {
   const scene = sceneById.get(sceneId);
 
   return (
-    <aside className="spatial-lab-scene-context" data-owner="WorldTypography">
+    <aside className="spatial-lab-scene-context" data-owner="ScreenCopyLayer">
       <span>{scene?.chapter ?? "演示路径"}</span>
       <strong>{String(target.sceneNumber).padStart(2, "0")}</strong>
       <div className="scene-progress-rail" aria-hidden="true">

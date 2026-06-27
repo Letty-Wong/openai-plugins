@@ -141,7 +141,6 @@
   position: absolute;
   right: 28px;
   top: 24px;
-  transform: translateZ(240px);
   z-index: 3;
 }
 

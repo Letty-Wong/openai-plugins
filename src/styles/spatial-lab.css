@@ -131,6 +131,53 @@
   transform: translateZ(-220px);
 }
 
+.spatial-lab-scene-context {
+  align-items: center;
+  color: var(--lab-muted);
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+  letter-spacing: 0;
+  position: absolute;
+  right: 28px;
+  top: 24px;
+  transform: translateZ(240px);
+  z-index: 3;
+}
+
+.spatial-lab-scene-context span {
+  font-size: 12px;
+}
+
+.spatial-lab-scene-context strong {
+  color: #d65f51;
+  font-size: 28px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.scene-progress-rail {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(21, 5px);
+}
+
+.scene-progress-rail i {
+  background: var(--lab-surface-border);
+  height: 22px;
+  opacity: 0.24;
+  width: 5px;
+}
+
+.scene-progress-rail i[data-complete="true"] {
+  opacity: 0.46;
+}
+
+.scene-progress-rail i[data-active="true"] {
+  background: #d65f51;
+  opacity: 1;
+}
+
 .spatial-lab-portal-preview {
   background:
     radial-gradient(circle at center, rgba(242, 234, 220, 0.16), transparent 58%),
@@ -456,13 +503,53 @@
   width: 100%;
 }
 
+.product-visual-backplate {
+  background:
+    linear-gradient(135deg, rgba(242, 234, 220, 0.18), rgba(242, 234, 220, 0.035)),
+    rgba(31, 29, 25, 0.12);
+  border: 1px solid var(--lab-surface-border);
+  bottom: 7%;
+  left: 18%;
+  position: absolute;
+  right: 16%;
+  top: 8%;
+  transform: translateZ(-18px) skewY(-2deg);
+}
+
+.product-visual-glow {
+  background: radial-gradient(circle at center, rgba(214, 95, 81, 0.18), transparent 64%);
+  inset: 8%;
+  position: absolute;
+  transform: translateZ(-26px);
+}
+
 .spatial-lab-product-geometry .product-stage-shell {
-  color: var(--lab-muted);
+  color: color-mix(in srgb, var(--lab-muted) 78%, #f2eadc 22%);
+  filter:
+    drop-shadow(0 28px 44px rgba(0, 0, 0, 0.34))
+    drop-shadow(0 0 14px rgba(214, 95, 81, 0.12));
   height: 100%;
   left: 50%;
   opacity: 1;
   top: 50%;
   width: 100%;
+}
+
+.product-visual-baseline {
+  background: linear-gradient(90deg, transparent, rgba(214, 95, 81, 0.58), transparent);
+  bottom: 8%;
+  height: 2px;
+  left: 18%;
+  position: absolute;
+  right: 14%;
+  transform: translateZ(18px);
+}
+
+.spatial-lab-viewport[data-world-tone="paper"] .product-visual-backplate {
+  background:
+    linear-gradient(135deg, rgba(255, 250, 239, 0.72), rgba(214, 202, 184, 0.22)),
+    rgba(230, 219, 200, 0.64);
+  border-color: rgba(31, 29, 25, 0.18);
 }
 
 .spatial-lab-judgement-geometry,

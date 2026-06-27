@@ -3,6 +3,7 @@
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { beatById } from "@/content/beats";
+import { sceneById } from "@/content/scenes";
 import {
   createInitialPresentationState,
   jumpToBeat,
@@ -11,7 +12,7 @@ import {
   toggleReducedMotion
 } from "@/presentation/core/PresentationController";
 import { reduceKeyboardShortcut } from "@/presentation/core/keyboard";
-import type { BeatId } from "@/presentation/core/state-types";
+import type { BeatId, SceneId } from "@/presentation/core/state-types";
 import { IntegrationRingGeometry } from "@/presentation/stage/IntegrationRing";
 import { ProductStage } from "@/presentation/stage/ProductStage";
 import { ActionPathGreybox } from "@/presentation/spatial-lab/ActionPathGreybox";
@@ -145,6 +146,7 @@ export function PresentationStageClientV4({
     <main
       className="spatial-lab-root"
       data-current-beat-id={target.beatId}
+      data-customer-visual="preview"
       data-lab-mode={mode}
       data-spatial-lab-version="V4"
       data-world-motion-state={target.world.motionState}
@@ -172,6 +174,7 @@ export function PresentationStageClientV4({
         <WorldCamera initialTarget={initialTargetRef.current} target={target}>
           <WorldSpace>
             <WorldAtmosphere target={target} />
+            <SceneContextLayer target={target} />
             <PortalPreviewLayer initialTarget={initialTargetRef.current} target={target} />
             <PersistentActors initialTarget={initialTargetRef.current} target={target} />
             <ArtifactSystem initialTarget={initialTargetRef.current} target={target} />
@@ -344,7 +347,10 @@ function ActorGeometry({
     return (
       <>
         <div className="spatial-lab-product-geometry" data-actor-geometry="product-stage">
+          <span aria-hidden="true" className="product-visual-backplate" />
+          <span aria-hidden="true" className="product-visual-glow" />
           <ProductStage renderState="silhouette" variant="route-anchor" />
+          <span aria-hidden="true" className="product-visual-baseline" />
         </div>
         <ActorDebugLabel actor={actor} />
       </>
@@ -489,6 +495,27 @@ function IntegrationRingActor({
       state={actor.geometry}
       tone={target.world.tone === "dark" ? "paper" : "ink"}
     />
+  );
+}
+
+function SceneContextLayer({ target }: { readonly target: StageTarget }) {
+  const sceneId = `scene-${String(target.sceneNumber).padStart(2, "0")}` as SceneId;
+  const scene = sceneById.get(sceneId);
+
+  return (
+    <aside className="spatial-lab-scene-context" data-owner="WorldTypography">
+      <span>{scene?.chapter ?? "演示路径"}</span>
+      <strong>{String(target.sceneNumber).padStart(2, "0")}</strong>
+      <div className="scene-progress-rail" aria-hidden="true">
+        {Array.from({ length: 21 }, (_, index) => (
+          <i
+            data-active={String(index + 1 === target.sceneNumber)}
+            data-complete={String(index + 1 < target.sceneNumber)}
+            key={index}
+          />
+        ))}
+      </div>
+    </aside>
   );
 }
 

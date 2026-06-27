@@ -71,3 +71,17 @@ test("WP-59 customer demo actors have audience bodies without engineering labels
   assert.match(cssSource, /\.spatial-lab-scenario-radar-geometry/);
   assert.match(cssSource, /\.spatial-lab-root\[data-lab-mode="review"\] \.artifact-debug-id/);
 });
+
+test("WP-59 VP-01 adds customer-facing scene context and premium placeholder product visuals", () => {
+  const labSource = readFileSync("src/presentation/spatial-lab/SpatialLabClientStage.tsx", "utf8");
+  const cssSource = readFileSync("src/styles/spatial-lab.css", "utf8");
+
+  assert.match(labSource, /function SceneContextLayer/);
+  assert.match(labSource, /className="spatial-lab-scene-context"/);
+  assert.match(labSource, /product-visual-backplate/);
+  assert.match(labSource, /ProductStage renderState="silhouette" variant="route-anchor"/);
+  assert.match(cssSource, /\.spatial-lab-scene-context/);
+  assert.match(cssSource, /\.product-visual-backplate/);
+  assert.match(cssSource, /\.product-visual-glow/);
+  assert.doesNotMatch(labSource, /qr\.png|QRCode|真实报名链接/);
+});

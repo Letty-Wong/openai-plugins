@@ -36,20 +36,27 @@ test("WP-58 FT-02 creates a real portal preview and parallax depth", () => {
   assert.ok(approach.target.camera.z > preview.target.camera.z);
   assert.ok(cross.target.camera.z > approach.target.camera.z);
   assert.ok(cross.target.portal.radius > approach.target.portal.radius);
+  assert.ok(cross.target.actors["actor.integration-ring"].scale >= 3.2);
+  assert.ok(cross.target.portal.radius >= 560);
+  assert.ok(cross.target.portal.oldWorldOpacity <= 0.25);
   assert.ok(cross.target.portal.oldWorldOpacity < approach.target.portal.oldWorldOpacity);
   assert.ok(Math.abs(cross.target.artifacts["artifact.F01"].x) > Math.abs(approach.target.artifacts["artifact.F01"].x));
   assert.ok(Math.abs(cross.target.artifacts["artifact.F02"].x) > Math.abs(approach.target.artifacts["artifact.F02"].x));
   assert.equal(establish.target.world.motionState, "settled");
   assert.equal(establish.target.actors["actor.integration-ring"].geometry.role, "safety-boundary");
+  assert.equal(establish.target.actors["actor.safety-boundary"].cameraPresence, "featured");
 });
 
 test("WP-58 FT-02 keeps direct 16.1 entry as an absolute endpoint", () => {
   const portal = resolveStageTarget("16.1");
 
-  assert.equal(portal.portal.visible, false);
+  assert.equal(portal.portal.visible, true);
   assert.equal(portal.world.motionState, "settled");
-  assert.equal(portal.actors["actor.integration-ring"].cameraPresence, "featured");
+  assert.equal(portal.actors["actor.integration-ring"].cameraPresence, "support");
   assert.equal(portal.actors["actor.product-stage"].cameraPresence, "support");
+  assert.equal(portal.actors["actor.safety-boundary"].cameraPresence, "featured");
+  assert.equal(portal.actors["actor.safety-boundary"].visible, true);
+  assert.ok(portal.safetyNodes.filter((node) => node.visible).length >= 4);
 });
 
 test("WP-58 FT-02 reduced motion keeps identity and avoids large rotation", () => {
@@ -67,11 +74,14 @@ test("WP-58 FT-02 reduced motion keeps identity and avoids large rotation", () =
 test("WP-58 FT-02 extends the existing PoseTransitionRuntime instead of adding another owner", () => {
   const runtimeSource = readFileSync("src/presentation/spatial-lab/PoseTransitionRuntime.tsx", "utf8");
   const labSource = readFileSync("src/presentation/spatial-lab/SpatialLabClientStage.tsx", "utf8");
+  const cssSource = readFileSync("src/styles/spatial-lab.css", "utf8");
 
   assert.match(runtimeSource, /function playTransitionPlan/);
   assert.match(runtimeSource, /getTransitionPlayback/);
   assert.match(runtimeSource, /previousTarget\.beatId === "15\.8" && target\.beatId === "16\.1"/);
   assert.match(runtimeSource, /previousTarget\.beatId === "16\.1" && target\.beatId === "15\.8"/);
   assert.match(labSource, /function PortalPreviewLayer/);
+  assert.match(labSource, /function SafetyBoundaryGreybox/);
+  assert.match(cssSource, /data-world-lighting-mode="safety"[\s\S]*--lab-old-world-opacity/);
   assert.doesNotMatch(labSource, /Second.*Runtime|Portal.*Runtime|Tunnel.*Runtime/);
 });

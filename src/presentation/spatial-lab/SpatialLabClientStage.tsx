@@ -20,6 +20,7 @@ import type { SpatialLabMode } from "@/presentation/spatial-lab/PresentationStag
 import {
   labActorIds,
   labArtifactIds,
+  labSafetyNodes,
   resolveStageTarget
 } from "@/presentation/spatial-lab/stage-target";
 import type {
@@ -254,6 +255,11 @@ function PortalPreviewLayer({
       <span className="portal-boundary bottom" />
       <span className="portal-boundary left" />
       <span className="portal-horizon" />
+      <div className="portal-safety-nodes">
+        {labSafetyNodes.map((node) => (
+          <span data-safety-node-id={node.id} key={node.id}>{node.label}</span>
+        ))}
+      </div>
     </div>
   );
 }
@@ -343,6 +349,15 @@ function ActorGeometry({
     );
   }
 
+  if (actor.actorId === "actor.safety-boundary") {
+    return (
+      <>
+        <SafetyBoundaryGreybox target={target} />
+        <ActorDebugLabel actor={actor} />
+      </>
+    );
+  }
+
   if (actor.actorId === "actor.judgement-question") {
     return (
       <>
@@ -362,6 +377,27 @@ function ActorGeometry({
   }
 
   return <ActorDebugLabel actor={actor} />;
+}
+
+function SafetyBoundaryGreybox({ target }: { readonly target: StageTarget }) {
+  return (
+    <div className="spatial-lab-safety-boundary-geometry" data-actor-geometry="safety-boundary">
+      <div className="safety-boundary-frame" />
+      <div className="safety-boundary-axis horizontal" />
+      <div className="safety-boundary-axis vertical" />
+      <div className="safety-boundary-nodes">
+        {target.safetyNodes.map((node) => (
+          <span
+            data-safety-node-id={node.id}
+            data-visible={String(node.visible)}
+            key={node.id}
+          >
+            {node.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function IntegrationRingActor({
@@ -508,6 +544,7 @@ function ArtifactShell({ artifact }: { readonly artifact: LabArtifactTarget }) {
         <span>市场</span>
         <span>销售</span>
         <span>视频</span>
+        <span>外贸</span>
         <span>客服</span>
       </div>
     </div>

@@ -135,6 +135,12 @@ export type LabPortalTarget = {
   readonly z: number;
 };
 
+export type LabSafetyNodeTarget = {
+  readonly id: "data" | "tool" | "content" | "permission";
+  readonly label: "资料" | "工具" | "内容" | "权限";
+  readonly visible: boolean;
+};
+
 export type SpatialWaypointTarget = {
   readonly actors: LabActorTargets;
   readonly artifacts: Readonly<Record<LabArtifactId, LabArtifactTarget>>;
@@ -169,6 +175,7 @@ export type StageTarget = {
   readonly product: LabProductTarget;
   readonly reducedMotion: boolean;
   readonly routePhase: RoutePhase;
+  readonly safetyNodes: readonly LabSafetyNodeTarget[];
   readonly sceneNumber: number;
   readonly transition?: LabTransitionTarget;
   readonly transitionPlan?: SpatialTransitionPlan;
@@ -199,6 +206,13 @@ export const labArtifactIds = [
   "artifact.F05",
   "artifact.F06"
 ] as const satisfies readonly LabArtifactId[];
+
+export const labSafetyNodes = [
+  { id: "data", label: "资料" },
+  { id: "tool", label: "工具" },
+  { id: "content", label: "内容" },
+  { id: "permission", label: "权限" }
+] as const satisfies readonly Omit<LabSafetyNodeTarget, "visible">[];
 
 const spatialBeatIds = [
   "01.1",
@@ -572,9 +586,15 @@ function createBaseTarget(
     },
     reducedMotion,
     routePhase,
+    safetyNodes: createSafetyNodeTargets(beatId),
     sceneNumber,
     world: proofTarget?.world ?? createWorldTarget(routePhase)
   };
+}
+
+function createSafetyNodeTargets(beatId: BeatId): readonly LabSafetyNodeTarget[] {
+  const visible = isAtOrAfter(beatId, "16.1") && !isAtOrAfter(beatId, "19.1");
+  return labSafetyNodes.map((node) => ({ ...node, visible }));
 }
 
 function createPortalTarget(overrides: Partial<LabPortalTarget> = {}): LabPortalTarget {
@@ -681,8 +701,9 @@ function createActorTargets(
       ...stripCameraPresence(proofPatch)
     };
     const forcedProductVisible = actorId === "actor.product-stage" && isAtOrAfter(beatId, "08.7");
-    const lifecycleVisible = forcedProductVisible || cue.lifecycle.currentVisible;
-    const lifecycle = forcedProductVisible && cue.lifecycle.phase === "off" ? "hold" : cue.lifecycle.phase;
+    const proofVisible = proofPatch?.cameraPresence !== undefined && isCameraVisible(proofPatch.cameraPresence);
+    const lifecycleVisible = forcedProductVisible || proofVisible || cue.lifecycle.currentVisible;
+    const lifecycle = (forcedProductVisible || proofVisible) && cue.lifecycle.phase === "off" ? "hold" : cue.lifecycle.phase;
     const cameraPresence = lifecycleVisible
       ? proofPatch?.cameraPresence ?? getDefaultCameraPresence(actorId, cue.role)
       : "offscreen";
@@ -1094,19 +1115,19 @@ function getFt01ProductJourneyTarget(beatId: BeatId, sceneNumber: number): Proof
     actorPatches: {
       "actor.integration-ring": {
         cameraPresence: "support",
-        rotateY: -10,
-        scale: isFreezeBeat ? 1.14 : 1.08,
-        x: -112,
-        y: -6,
-        z: 18
+        rotateY: isFreezeBeat ? -4 : -10,
+        scale: isFreezeBeat ? 0.82 : 1.08,
+        x: isFreezeBeat ? -204 : -112,
+        y: isFreezeBeat ? 8 : -6,
+        z: isFreezeBeat ? -48 : 18
       },
       "actor.product-stage": {
         cameraPresence: "featured",
         rotateY: -10,
-        scale: isFreezeBeat ? 0.98 : 0.94,
-        x: station.productX,
-        y: station.productY,
-        z: station.focusZ
+        scale: isFreezeBeat ? 0.92 : 0.94,
+        x: isFreezeBeat ? 72 : station.productX,
+        y: isFreezeBeat ? 34 : station.productY,
+        z: isFreezeBeat ? 168 : station.focusZ
       }
     },
     artifactPatches: createFt01ArtifactPatches(station, isFreezeBeat),
@@ -1116,21 +1137,21 @@ function getFt01ProductJourneyTarget(beatId: BeatId, sceneNumber: number): Proof
       perspective: 1200,
       poseId: `camera.ft01.${poseSuffix}`,
       rotationX: isFreezeBeat ? 1 : 2,
-      rotationY: -9,
+      rotationY: isFreezeBeat ? -5 : -9,
       rotationZ: 0,
-      scale: isFreezeBeat ? 1.08 : 1.05,
+      scale: isFreezeBeat ? 1.02 : 1.05,
       x: station.cameraX,
-      y: station.cameraY,
-      z: station.cameraZ
+      y: isFreezeBeat ? -12 : station.cameraY,
+      z: isFreezeBeat ? 72 : station.cameraZ
     },
     portal: createPortalTarget({ oldWorldOpacity: 1 }),
     ringGeometry: {
       gap: isFreezeBeat ? 0 : station.gap,
-      glow: isFreezeBeat ? 0.72 : station.glow,
-      portalRadius: isFreezeBeat ? 164 : 150,
+      glow: isFreezeBeat ? 0.42 : station.glow,
+      portalRadius: isFreezeBeat ? 146 : 150,
       role: station.ringRole,
       segmentProgress: isFreezeBeat ? [1, 1, 1, 1, 1] : station.segmentProgress,
-      thickness: isFreezeBeat ? 11 : 9
+      thickness: isFreezeBeat ? 8 : 9
     },
     world: { lightingMode: "product", motionState: isFreezeBeat ? "frozen" : "active", tone: "paper" }
   };
@@ -1140,30 +1161,31 @@ function createFt01ArtifactPatches(
   station: Ft01StationConfig,
   isFreezeBeat: boolean
 ): ProofArtifactPatch {
-  const y = isFreezeBeat ? 116 : 126;
-  const z = isFreezeBeat ? 130 : 104;
+  const y = isFreezeBeat ? 186 : 126;
+  const z = isFreezeBeat ? 62 : 104;
+  const freezeX = -222;
   return {
     "artifact.F01": {
       cameraPresence: "support",
       mode: station.artifactMode,
-      scale: isFreezeBeat ? 0.94 : 0.88,
-      x: station.artifactX,
+      scale: isFreezeBeat ? 0.82 : 0.88,
+      x: isFreezeBeat ? freezeX : station.artifactX,
       y,
       z
     },
     "artifact.F02": {
       cameraPresence: "support",
       mode: station.artifactMode,
-      scale: isFreezeBeat ? 0.9 : 0.84,
-      x: station.artifactX + 76,
-      y: y - 42,
+      scale: isFreezeBeat ? 0.82 : 0.84,
+      x: isFreezeBeat ? freezeX + 222 : station.artifactX + 76,
+      y: isFreezeBeat ? y : y - 42,
       z: z + 18
     },
     "artifact.F03": {
       cameraPresence: "support",
       mode: station.artifactMode,
-      scale: isFreezeBeat ? 0.86 : 0.8,
-      x: station.artifactX + 152,
+      scale: isFreezeBeat ? 0.82 : 0.8,
+      x: isFreezeBeat ? freezeX + 444 : station.artifactX + 152,
       y,
       z: z + 36
     },
@@ -1188,28 +1210,28 @@ function getFt02SafetyPortalTarget(beatId: BeatId): ProofTarget | undefined {
   return {
     actorPatches: {
       "actor.integration-ring": {
-        cameraPresence: "featured",
-        rotateX: -4,
+        cameraPresence: "support",
+        rotateX: -2,
         rotateY: 0,
-        scale: 1.08,
-        x: -22,
-        y: 0,
-        z: 220
+        scale: 0.94,
+        x: -18,
+        y: -2,
+        z: 164
       },
       "actor.product-stage": {
         cameraPresence: "support",
-        rotateY: -14,
-        scale: 0.68,
-        x: -170,
-        y: 48,
-        z: -120
+        rotateY: -12,
+        scale: 0.86,
+        x: -218,
+        y: 62,
+        z: -64
       },
       "actor.safety-boundary": {
-        cameraPresence: "latent",
-        scale: 0.9,
-        x: 70,
-        y: 12,
-        z: 120
+        cameraPresence: "featured",
+        scale: 1,
+        x: 112,
+        y: -4,
+        z: 190
       }
     },
     artifactPatches: createLatentArtifactPatches("review"),
@@ -1219,32 +1241,32 @@ function getFt02SafetyPortalTarget(beatId: BeatId): ProofTarget | undefined {
       perspective: 1280,
       poseId: "camera.ft02.establish-safety-world",
       rotationX: 0,
-      rotationY: -2,
+      rotationY: -1,
       rotationZ: 0,
-      scale: 1.02,
-      x: -18,
-      y: -18,
-      z: 210
+      scale: 1,
+      x: -24,
+      y: -10,
+      z: 178
     },
     portal: createPortalTarget({
       edgeProgress: 1,
       oldWorldOpacity: 0,
-      opacity: 0,
+      opacity: 0.34,
       radius: 220,
       safetyOpacity: 1,
-      scale: 1,
-      visible: false,
-      x: -22,
-      y: 0,
-      z: 210
+      scale: 0.92,
+      visible: true,
+      x: 96,
+      y: -4,
+      z: 160
     }),
     ringGeometry: {
       gap: 18,
-      glow: 0.78,
-      portalRadius: 190,
+      glow: 0.54,
+      portalRadius: 184,
       role: "safety-boundary",
       segmentProgress: [1, 0.88, 0.68, 0.56, 0.42],
-      thickness: 10
+      thickness: 8
     },
     world: { lightingMode: "safety", motionState: "settled", tone: "dark" }
   };
@@ -1278,31 +1300,33 @@ function createFt02ForwardPortalPlan(from: StageTarget, to: StageTarget): Spatia
   const w0 = waypoint("W0", "frozen-output", 0.18, snapshot(from));
   const w1 = waypoint("W1", "portal-preview", 0.3, patchSnapshot(from, {
     actors: {
-      "actor.integration-ring": { scale: 1.2, x: -112, y: -6, z: 70 }
+      "actor.integration-ring": { scale: 0.96, x: -164, y: 2, z: 80 },
+      "actor.product-stage": { scale: 0.88, x: 58, y: 36, z: 142 }
     },
     portal: {
       edgeProgress: 0.18,
       oldWorldOpacity: 1,
       opacity: 0.72,
-      radius: 138,
-      safetyOpacity: 0.44,
+      radius: 168,
+      safetyOpacity: 0.58,
       scale: 0.96,
       visible: true,
-      x: -112,
-      y: -6,
-      z: 110
+      x: -164,
+      y: 2,
+      z: 118
     },
     world: { lightingMode: "product", motionState: "portal", tone: "paper" }
   }));
   const w2 = waypoint("W2", "approach-ring", 0.34, patchSnapshot(from, {
     actors: {
-      "actor.integration-ring": { scale: 1.36, x: -64, y: -2, z: 250 },
-      "actor.product-stage": { scale: 0.86, x: 14, y: 28, z: 76 }
+      "actor.integration-ring": { scale: 1.58, x: -58, y: -2, z: 300 },
+      "actor.product-stage": { scale: 0.82, x: 20, y: 42, z: 70 },
+      "actor.safety-boundary": { cameraPresence: "support", scale: 0.86, x: 138, y: -10, z: 210 }
     },
     artifacts: {
-      "artifact.F01": { cameraPresence: "support", scale: 1.08, x: -360, y: 90, z: 360 },
-      "artifact.F02": { cameraPresence: "support", scale: 1.04, x: 378, y: 18, z: 330 },
-      "artifact.F03": { cameraPresence: "latent", scale: 0.72, x: 40, y: 148, z: -160 }
+      "artifact.F01": { cameraPresence: "support", scale: 1.18, x: -520, y: 76, z: 420 },
+      "artifact.F02": { cameraPresence: "support", scale: 1.14, x: 520, y: 4, z: 420 },
+      "artifact.F03": { cameraPresence: "latent", scale: 0.72, x: 40, y: 168, z: -180 }
     },
     camera: {
       depthBand: "near",
@@ -1312,33 +1336,34 @@ function createFt02ForwardPortalPlan(from: StageTarget, to: StageTarget): Spatia
       rotationX: 1,
       rotationY: -5,
       rotationZ: 0,
-      scale: 1.16,
-      x: -28,
+      scale: 1.18,
+      x: -20,
       y: -18,
-      z: 190
+      z: 230
     },
     portal: {
       edgeProgress: 0.44,
-      oldWorldOpacity: 0.74,
+      oldWorldOpacity: 0.72,
       opacity: 0.86,
-      radius: 210,
-      safetyOpacity: 0.64,
-      scale: 1.18,
+      radius: 260,
+      safetyOpacity: 0.76,
+      scale: 1.24,
       visible: true,
-      x: -64,
+      x: -58,
       y: -2,
-      z: 250
+      z: 300
     },
     world: { lightingMode: "product", motionState: "portal", tone: "paper" }
   }));
   const w3 = waypoint("W3", "cross-ring-edge", 0.32, patchSnapshot(from, {
     actors: {
-      "actor.integration-ring": { scale: 1.86, x: -8, y: 0, z: 480 },
-      "actor.product-stage": { scale: 0.72, x: -96, y: 44, z: -60 }
+      "actor.integration-ring": { scale: 3.42, x: -2, y: 0, z: 620 },
+      "actor.product-stage": { scale: 0.66, x: -124, y: 52, z: -120 },
+      "actor.safety-boundary": { cameraPresence: "support", scale: 1.04, x: 126, y: -8, z: 260 }
     },
     artifacts: {
-      "artifact.F01": { cameraPresence: "support", scale: 1.38, x: -620, y: 70, z: 620 },
-      "artifact.F02": { cameraPresence: "support", scale: 1.32, x: 650, y: -26, z: 580 },
+      "artifact.F01": { cameraPresence: "support", scale: 1.46, x: -720, y: 70, z: 680 },
+      "artifact.F02": { cameraPresence: "support", scale: 1.42, x: 740, y: -34, z: 650 },
       "artifact.F03": { cameraPresence: "latent", scale: 0.72, x: 120, y: 168, z: -240 }
     },
     camera: {
@@ -1349,22 +1374,22 @@ function createFt02ForwardPortalPlan(from: StageTarget, to: StageTarget): Spatia
       rotationX: 0,
       rotationY: -3,
       rotationZ: 0,
-      scale: 1.32,
-      x: -14,
+      scale: 1.42,
+      x: -10,
       y: -16,
-      z: 360
+      z: 420
     },
     portal: {
       edgeProgress: 0.82,
-      oldWorldOpacity: 0.28,
+      oldWorldOpacity: 0.2,
       opacity: 0.96,
-      radius: 430,
+      radius: 620,
       safetyOpacity: 0.9,
-      scale: 1.42,
+      scale: 1.62,
       visible: true,
       x: -8,
       y: 0,
-      z: 480
+      z: 620
     },
     world: { lightingMode: "safety", motionState: "portal", tone: "dark" }
   }));
@@ -1426,7 +1451,19 @@ function patchActors(
     labActorIds.map((actorId) => {
       const actor = actors[actorId];
       const patch = patches[actorId];
-      return [actorId, patch ? { ...actor, ...patch } : actor];
+      if (!patch) return [actorId, actor];
+
+      const patched = { ...actor, ...patch };
+      const visible = isCameraVisible(patched.cameraPresence);
+      return [
+        actorId,
+        {
+          ...patched,
+          lifecycle: visible && patched.lifecycle === "off" ? "hold" : patched.lifecycle,
+          opacity: visible ? patch.opacity ?? getActorOpacity(patched.cameraPresence, patched.role) : 0,
+          visible
+        }
+      ];
     })
   ) as LabActorTargets;
 }

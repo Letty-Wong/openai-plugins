@@ -177,6 +177,14 @@ function getTransitionPlayback(
     return { direction: "backward", plan: previousTarget.transitionPlan };
   }
 
+  if (previousTarget.beatId === "20.10" && target.beatId === "21.1" && target.transitionPlan) {
+    return { direction: "forward", plan: target.transitionPlan };
+  }
+
+  if (previousTarget.beatId === "21.1" && target.beatId === "20.10" && previousTarget.transitionPlan) {
+    return { direction: "backward", plan: previousTarget.transitionPlan };
+  }
+
   return undefined;
 }
 

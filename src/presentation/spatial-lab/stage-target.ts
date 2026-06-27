@@ -230,6 +230,7 @@ const spatialBeatIds = [
   "15.1",
   "15.8",
   "16.1",
+  "17.1",
   "18.9",
   "19.1",
   "19.9",
@@ -317,9 +318,9 @@ const transitionMetadataByBeatId: Readonly<Partial<Record<BeatId, LabTransitionT
   },
   "21.1": {
     acceptanceFocus: [
-      "Metadata only until Gate A passes",
-      "No dolly-back waypoint is implemented in FIX-A3",
-      "Final loop is a deterministic endpoint"
+      "FT-04 dolly-back loop waypoints are active",
+      "CTA remains a placeholder without a real QR code",
+      "IntegrationRing, ProductStage, ActionPath, and CtaDock share one final stage"
     ],
     gate: "SR-06",
     id: "transition.20-21.backward-loop-reveal",
@@ -975,7 +976,9 @@ function artifactPoseForEquality(artifact: LabArtifactTarget) {
 function getExplicitStageTarget(beatId: BeatId, sceneNumber: number): ProofTarget | undefined {
   return getFixA4ProofTarget(beatId)
     ?? getFt01ProductJourneyTarget(beatId, sceneNumber)
-    ?? getFt02SafetyPortalTarget(beatId);
+    ?? getFt02SafetyPortalTarget(beatId)
+    ?? getFt03SafetyActionTarget(beatId, sceneNumber)
+    ?? getFt04FinaleTarget(beatId);
 }
 
 type Ft01StationConfig = {
@@ -1284,16 +1287,451 @@ function createLatentArtifactPatches(mode: LabArtifactMode): ProofArtifactPatch 
   ) as ProofArtifactPatch;
 }
 
-function attachSpatialTransitionPlan(target: StageTarget, reducedMotion: boolean): StageTarget {
-  if (target.beatId !== "16.1") return target;
+function createVisibleArtifactPatches(
+  mode: LabArtifactMode,
+  positions: readonly { readonly x: number; readonly y: number; readonly z: number; readonly scale?: number }[]
+): ProofArtifactPatch {
+  return Object.fromEntries(
+    labArtifactIds.map((artifactId, index) => {
+      const position = positions[index];
+      if (!position) {
+        return [
+          artifactId,
+          {
+            cameraPresence: "latent",
+            mode
+          }
+        ];
+      }
 
-  const frozenOutput = resolveStageTarget("15.8", { reducedMotion });
-  const plan = createFt02ForwardPortalPlan(frozenOutput, target);
+      return [
+        artifactId,
+        {
+          cameraPresence: "support",
+          mode,
+          scale: position.scale ?? 0.82,
+          x: position.x,
+          y: position.y,
+          z: position.z
+        }
+      ];
+    })
+  ) as ProofArtifactPatch;
+}
+
+function getFt03SafetyActionTarget(beatId: BeatId, sceneNumber: number): ProofTarget | undefined {
+  if (beatId === "16.1" || sceneNumber < 16 || sceneNumber > 20) return undefined;
+
+  if (sceneNumber === 16 || sceneNumber === 17) {
+    return createSafetyBoundaryTarget(beatId, sceneNumber);
+  }
+
+  if (sceneNumber === 18) {
+    return createReviewConfirmTarget(beatId);
+  }
+
+  if (sceneNumber === 19 && !isAtOrAfter(beatId, "19.9")) {
+    return createScenarioRadarTarget(beatId);
+  }
+
+  return createActionRouteTarget(beatId);
+}
+
+function createSafetyBoundaryTarget(beatId: BeatId, sceneNumber: number): ProofTarget {
+  const isDataToolScene = sceneNumber === 17;
 
   return {
-    ...target,
-    transitionPlan: plan
+    actorPatches: {
+      "actor.integration-ring": {
+        cameraPresence: "ambient",
+        rotateX: -3,
+        scale: 0.9,
+        x: -214,
+        y: -68,
+        z: 54
+      },
+      "actor.product-stage": {
+        cameraPresence: "support",
+        rotateY: -12,
+        scale: 0.74,
+        x: -254,
+        y: 86,
+        z: -90
+      },
+      "actor.safety-boundary": {
+        cameraPresence: "featured",
+        scale: isDataToolScene ? 1.03 : 1,
+        x: 52,
+        y: -8,
+        z: 190
+      },
+      "actor.source-packet": {
+        cameraPresence: "support",
+        scale: isDataToolScene ? 0.9 : 0.84,
+        x: -248,
+        y: -88,
+        z: 108
+      }
+    },
+    artifactPatches: createVisibleArtifactPatches("review", [
+      { scale: 0.78, x: -306, y: 126, z: 80 },
+      { scale: 0.76, x: -118, y: 154, z: 96 }
+    ]),
+    camera: {
+      depthBand: "near",
+      focusActorId: "actor.safety-boundary",
+      perspective: 1280,
+      poseId: `camera.ft03.${isDataToolScene ? "data-tool-boundary" : "safety-entry"}`,
+      rotationX: 0,
+      rotationY: -2,
+      rotationZ: 0,
+      scale: 1.02,
+      x: -38,
+      y: -18,
+      z: 154
+    },
+    portal: createPortalTarget({
+      edgeProgress: 1,
+      oldWorldOpacity: 0,
+      opacity: 0.16,
+      radius: 230,
+      safetyOpacity: 1,
+      scale: 0.92,
+      visible: true,
+      x: 56,
+      y: -8,
+      z: 160
+    }),
+    ringGeometry: {
+      gap: 20,
+      glow: 0.52,
+      portalRadius: 188,
+      role: isDataToolScene ? "data-tool-safety-boundary" : "safety-control-boundary",
+      segmentProgress: isDataToolScene ? [1, 0.96, 0.78, 0.58, 0.46] : [1, 0.9, 0.7, 0.56, 0.44],
+      thickness: 8
+    },
+    world: { lightingMode: "safety", motionState: "settled", tone: "dark" }
   };
+}
+
+function createReviewConfirmTarget(beatId: BeatId): ProofTarget {
+  const isConfirmBeat = isAtOrAfter(beatId, "18.7");
+
+  return {
+    actorPatches: {
+      "actor.product-stage": {
+        cameraPresence: "support",
+        rotateY: -12,
+        scale: 0.66,
+        x: -286,
+        y: 92,
+        z: -120
+      },
+      "actor.safety-boundary": {
+        cameraPresence: "ambient",
+        scale: 0.88,
+        x: -8,
+        y: -18,
+        z: 80
+      },
+      "actor.human-review": {
+        cameraPresence: isConfirmBeat ? "support" : "featured",
+        scale: isConfirmBeat ? 0.92 : 1,
+        x: -92,
+        y: -22,
+        z: 212
+      },
+      "actor.action-confirm-gate": {
+        cameraPresence: isConfirmBeat ? "featured" : "latent",
+        scale: isConfirmBeat ? 1 : 0.86,
+        x: isConfirmBeat ? 150 : 198,
+        y: isConfirmBeat ? 28 : 72,
+        z: isConfirmBeat ? 220 : 100
+      }
+    },
+    artifactPatches: createVisibleArtifactPatches("review", [
+      { scale: 0.78, x: -260, y: 150, z: 90 },
+      { scale: 0.76, x: -72, y: 178, z: 112 }
+    ]),
+    camera: {
+      depthBand: "near",
+      focusActorId: isConfirmBeat ? "actor.action-confirm-gate" : "actor.human-review",
+      perspective: 1260,
+      poseId: `camera.ft03.${isConfirmBeat ? "confirm-gate" : "human-review"}`,
+      rotationX: 1,
+      rotationY: -2,
+      rotationZ: 0,
+      scale: 1.02,
+      x: -28,
+      y: -28,
+      z: 142
+    },
+    portal: createPortalTarget({
+      edgeProgress: 1,
+      oldWorldOpacity: 0,
+      opacity: 0.1,
+      radius: 220,
+      safetyOpacity: 0.82,
+      scale: 0.86,
+      visible: true,
+      x: -4,
+      y: -10,
+      z: 94
+    }),
+    ringGeometry: {
+      gap: 16,
+      glow: 0.48,
+      portalRadius: 180,
+      role: isConfirmBeat ? "execution-confirm-boundary" : "human-review-boundary",
+      segmentProgress: isConfirmBeat ? [1, 1, 0.9, 0.74, 0.58] : [1, 0.96, 0.84, 0.68, 0.52],
+      thickness: 8
+    },
+    world: { lightingMode: "safety", motionState: "settled", tone: "dark" }
+  };
+}
+
+function createScenarioRadarTarget(beatId: BeatId): ProofTarget {
+  const isSelfTestBeat = isAtOrAfter(beatId, "19.6");
+
+  return {
+    actorPatches: {
+      "actor.integration-ring": {
+        cameraPresence: isSelfTestBeat ? "latent" : "ambient",
+        rotateX: 4,
+        scale: 1.05,
+        x: -210,
+        y: -74,
+        z: -20
+      },
+      "actor.product-stage": {
+        cameraPresence: isSelfTestBeat ? "ambient" : "support",
+        rotateY: -12,
+        scale: 0.62,
+        x: -286,
+        y: 94,
+        z: -134
+      },
+      "actor.safety-boundary": {
+        cameraPresence: "support",
+        scale: 0.78,
+        x: 194,
+        y: -24,
+        z: 30
+      },
+      "actor.scenario-radar": {
+        cameraPresence: "featured",
+        scale: isSelfTestBeat ? 1.06 : 1,
+        x: -18,
+        y: 0,
+        z: 230
+      },
+      "actor.cta-dock": {
+        cameraPresence: isSelfTestBeat ? "support" : "latent",
+        scale: 0.82,
+        x: 248,
+        y: 122,
+        z: 140
+      }
+    },
+    artifactPatches: createVisibleArtifactPatches("route", [
+      { scale: 0.78, x: -252, y: 146, z: 80 },
+      { scale: 0.76, x: -64, y: 176, z: 104 }
+    ]),
+    camera: {
+      depthBand: "mid",
+      focusActorId: "actor.scenario-radar",
+      perspective: 1240,
+      poseId: `camera.ft03.${isSelfTestBeat ? "scenario-self-test" : "scenario-radar"}`,
+      rotationX: 3,
+      rotationY: 2,
+      rotationZ: 0,
+      scale: 1,
+      x: -62,
+      y: -64,
+      z: 88
+    },
+    portal: createPortalTarget({ oldWorldOpacity: 0 }),
+    ringGeometry: {
+      gap: isSelfTestBeat ? 12 : 18,
+      glow: 0.5,
+      portalRadius: 186,
+      role: isSelfTestBeat ? "scenario-self-test-radar" : "scenario-diagnostic-radar",
+      segmentProgress: isSelfTestBeat ? [1, 1, 0.96, 0.84, 0.72] : [1, 0.94, 0.82, 0.68, 0.58],
+      thickness: 8
+    },
+    world: { lightingMode: "action", motionState: "active", tone: "paper" }
+  };
+}
+
+function createActionRouteTarget(beatId: BeatId): ProofTarget {
+  const isFinalActionBeat = beatId === "20.10";
+
+  return {
+    actorPatches: {
+      "actor.integration-ring": {
+        cameraPresence: "support",
+        rotateX: 6,
+        scale: isFinalActionBeat ? 1.12 : 1.02,
+        x: isFinalActionBeat ? -144 : -204,
+        y: isFinalActionBeat ? -54 : -82,
+        z: isFinalActionBeat ? -36 : -20
+      },
+      "actor.product-stage": {
+        cameraPresence: "support",
+        rotateY: -10,
+        scale: 0.64,
+        x: -282,
+        y: 92,
+        z: -128
+      },
+      "actor.safety-boundary": {
+        cameraPresence: isFinalActionBeat ? "ambient" : "latent",
+        scale: 0.72,
+        x: 214,
+        y: -34,
+        z: -10
+      },
+      "actor.scenario-radar": {
+        cameraPresence: isFinalActionBeat ? "latent" : "ambient",
+        scale: 0.78,
+        x: -268,
+        y: 136,
+        z: -80
+      },
+      "actor.action-path": {
+        cameraPresence: "featured",
+        scale: isFinalActionBeat ? 1.08 : 1,
+        x: isFinalActionBeat ? 26 : 8,
+        y: isFinalActionBeat ? 104 : 120,
+        z: isFinalActionBeat ? 210 : 160
+      }
+    },
+    artifactPatches: createVisibleArtifactPatches("route", [
+      { scale: 0.76, x: -248, y: 150, z: 72 },
+      { scale: 0.74, x: -78, y: 182, z: 96 }
+    ]),
+    camera: {
+      depthBand: "mid",
+      focusActorId: "actor.action-path",
+      perspective: 1250,
+      poseId: `camera.ft03.${isFinalActionBeat ? "action-route-complete" : "action-route"}`,
+      rotationX: 4,
+      rotationY: 3,
+      rotationZ: 0,
+      scale: isFinalActionBeat ? 0.98 : 1.02,
+      x: isFinalActionBeat ? -78 : -96,
+      y: isFinalActionBeat ? -92 : -118,
+      z: isFinalActionBeat ? 80 : 96
+    },
+    portal: createPortalTarget({ oldWorldOpacity: 0 }),
+    ringGeometry: {
+      gap: isFinalActionBeat ? 4 : 10,
+      glow: 0.52,
+      portalRadius: isFinalActionBeat ? 214 : 180,
+      role: isFinalActionBeat ? "action-route-ready-for-loop" : "action-route",
+      segmentProgress: isFinalActionBeat ? [1, 1, 1, 0.96, 0.88] : [1, 0.96, 0.88, 0.78, 0.66],
+      thickness: 8
+    },
+    world: { lightingMode: "action", motionState: "active", tone: "paper" }
+  };
+}
+
+function getFt04FinaleTarget(beatId: BeatId): ProofTarget | undefined {
+  if (beatId !== "21.1") return undefined;
+
+  return {
+    actorPatches: {
+      "actor.integration-ring": {
+        cameraPresence: "support",
+        rotateX: 8,
+        scale: 1.42,
+        x: -126,
+        y: -44,
+        z: -170
+      },
+      "actor.product-stage": {
+        cameraPresence: "ambient",
+        rotateY: -8,
+        scale: 0.58,
+        x: -300,
+        y: 82,
+        z: -230
+      },
+      "actor.safety-boundary": {
+        cameraPresence: "latent",
+        scale: 0.7,
+        x: 186,
+        y: -42,
+        z: -120
+      },
+      "actor.action-path": {
+        cameraPresence: "support",
+        rotateX: 8,
+        scale: 0.94,
+        x: -4,
+        y: 110,
+        z: 48
+      },
+      "actor.cta-dock": {
+        cameraPresence: "featured",
+        scale: 1,
+        x: 228,
+        y: -24,
+        z: 172
+      }
+    },
+    artifactPatches: createVisibleArtifactPatches("route", [
+      { scale: 0.72, x: -270, y: 144, z: -40 },
+      { scale: 0.7, x: -114, y: 176, z: -18 }
+    ]),
+    camera: {
+      depthBand: "far",
+      focusActorId: "actor.integration-ring",
+      perspective: 1380,
+      poseId: "camera.ft04.final-loop-cta",
+      rotationX: 8,
+      rotationY: 0,
+      rotationZ: 0,
+      scale: 0.76,
+      x: 0,
+      y: -152,
+      z: -260
+    },
+    portal: createPortalTarget({ oldWorldOpacity: 0 }),
+    ringGeometry: {
+      gap: 0,
+      glow: 0.58,
+      portalRadius: 260,
+      role: "final-loop-cta-placeholder",
+      segmentProgress: [1, 1, 1, 1, 1],
+      thickness: 9
+    },
+    world: { lightingMode: "finale", motionState: "settled", tone: "paper" }
+  };
+}
+
+function attachSpatialTransitionPlan(target: StageTarget, reducedMotion: boolean): StageTarget {
+  if (target.beatId === "16.1") {
+    const frozenOutput = resolveStageTarget("15.8", { reducedMotion });
+    const plan = createFt02ForwardPortalPlan(frozenOutput, target);
+
+    return {
+      ...target,
+      transitionPlan: plan
+    };
+  }
+
+  if (target.beatId === "21.1") {
+    const actionRoute = resolveStageTarget("20.10", { reducedMotion });
+    const plan = createFt04FinalePullbackPlan(actionRoute, target);
+
+    return {
+      ...target,
+      transitionPlan: plan
+    };
+  }
+
+  return target;
 }
 
 function createFt02ForwardPortalPlan(from: StageTarget, to: StageTarget): SpatialTransitionPlan {
@@ -1400,6 +1838,68 @@ function createFt02ForwardPortalPlan(from: StageTarget, to: StageTarget): Spatia
     id: "transition-plan.ft02.forward-safety-portal",
     toBeatId: "16.1",
     waypoints: [w0, w1, w2, w3, w4]
+  };
+}
+
+function createFt04FinalePullbackPlan(from: StageTarget, to: StageTarget): SpatialTransitionPlan {
+  const w0 = waypoint("W0", "action-route-complete", 0.18, snapshot(from));
+  const w1 = waypoint("W1", "loop-begins-to-close", 0.28, patchSnapshot(from, {
+    actors: {
+      "actor.integration-ring": { cameraPresence: "support", scale: 1.2, x: -124, y: -48, z: -80 },
+      "actor.product-stage": { cameraPresence: "ambient", scale: 0.6, x: -302, y: 86, z: -180 },
+      "actor.action-path": { cameraPresence: "featured", scale: 1.02, x: 18, y: 106, z: 164 },
+      "actor.cta-dock": { cameraPresence: "support", scale: 0.78, x: 286, y: -8, z: 116 }
+    },
+    camera: {
+      depthBand: "mid",
+      focusActorId: "actor.action-path",
+      perspective: 1300,
+      poseId: "camera.ft04.loop-begins",
+      rotationX: 5,
+      rotationY: 2,
+      rotationZ: 0,
+      scale: 0.92,
+      x: -54,
+      y: -116,
+      z: -18
+    },
+    world: { lightingMode: "finale", motionState: "active", tone: "paper" }
+  }));
+  const w2 = waypoint("W2", "pull-back-to-reveal-loop", 0.34, patchSnapshot(from, {
+    actors: {
+      "actor.integration-ring": { cameraPresence: "support", scale: 1.5, x: -126, y: -46, z: -190 },
+      "actor.product-stage": { cameraPresence: "ambient", scale: 0.56, x: -304, y: 82, z: -260 },
+      "actor.safety-boundary": { cameraPresence: "ambient", scale: 0.68, x: 160, y: -46, z: -210 },
+      "actor.action-path": { cameraPresence: "support", scale: 0.94, x: -2, y: 108, z: 28 },
+      "actor.cta-dock": { cameraPresence: "featured", scale: 0.94, x: 226, y: -22, z: 150 }
+    },
+    artifacts: {
+      "artifact.F01": { cameraPresence: "support", scale: 0.72, x: -270, y: 144, z: -48 },
+      "artifact.F02": { cameraPresence: "support", scale: 0.7, x: -114, y: 176, z: -24 },
+      "artifact.F03": { cameraPresence: "latent", scale: 0.7, x: 34, y: 166, z: -80 }
+    },
+    camera: {
+      depthBand: "far",
+      focusActorId: "actor.integration-ring",
+      perspective: 1360,
+      poseId: "camera.ft04.pull-back-loop",
+      rotationX: 8,
+      rotationY: 0,
+      rotationZ: 0,
+      scale: 0.78,
+      x: -8,
+      y: -146,
+      z: -230
+    },
+    world: { lightingMode: "finale", motionState: "active", tone: "paper" }
+  }));
+  const w3 = waypoint("W3", "establish-final-loop-cta", 0.34, snapshot(to));
+
+  return {
+    fromBeatId: "20.10",
+    id: "transition-plan.ft04.finale-pullback-loop",
+    toBeatId: "21.1",
+    waypoints: [w0, w1, w2, w3]
   };
 }
 

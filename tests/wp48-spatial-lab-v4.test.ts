@@ -122,17 +122,18 @@ test("WP-51 SR-05 uses the FT-02 waypoint plan without changing actor identity",
   assert.equal(portal.transitionPlan?.waypoints.length, 5);
 });
 
-test("WP-51 SR-06 keeps ActionPath identity with metadata-only final loop endpoint", () => {
+test("WP-51 SR-06 keeps ActionPath identity through the FT-04 final loop endpoint", () => {
   const route = resolveStageTarget("20.10");
   const finale = resolveStageTarget("21.1");
 
   assert.equal(finale.transition?.gate, "SR-06");
-  assert.equal(finale.transition.acceptanceFocus[0], "Metadata only until Gate A passes");
+  assert.equal(finale.transition.acceptanceFocus[0], "FT-04 dolly-back loop waypoints are active");
   assert.equal(route.actors["actor.action-path"].actorId, finale.actors["actor.action-path"].actorId);
   assert.equal(finale.actors["actor.action-path"].visible, true);
+  assert.equal(finale.transitionPlan?.id, "transition-plan.ft04.finale-pullback-loop");
   assert.equal(finale.actors["actor.integration-ring"].geometry.gap, 0);
-  assert.equal(finale.actors["actor.integration-ring"].geometry.role, "final-loop");
+  assert.equal(finale.actors["actor.integration-ring"].geometry.role, "final-loop-cta-placeholder");
   assert.equal(finale.product.placeholderOnly, true);
   assert.notEqual(finale.actors["actor.cta-dock"].actorId, finale.actors["actor.action-path"].actorId);
-  assert.equal(finale.actors["actor.cta-dock"].cameraPresence, "latent");
+  assert.equal(finale.actors["actor.cta-dock"].cameraPresence, "featured");
 });

@@ -34,7 +34,18 @@ import {
   ownershipRows
 } from "@/presentation/spatial-lab/spatial-lab-contract";
 
-const sampleBeatIds = ["01.1", "08.7", "09.1", "15.8", "16.1", "20.10", "21.1"] as const satisfies readonly BeatId[];
+const sampleBeatIds = [
+  "01.1",
+  "08.7",
+  "09.1",
+  "15.8",
+  "16.1",
+  "17.1",
+  "18.7",
+  "19.1",
+  "20.10",
+  "21.1"
+] as const satisfies readonly BeatId[];
 
 type PresentationStageClientV4Props = {
   readonly initialBeatId: BeatId;
@@ -376,6 +387,69 @@ function ActorGeometry({
     );
   }
 
+  if (actor.actorId === "actor.source-packet") {
+    return (
+      <>
+        <SourcePacketGreybox />
+        <ActorDebugLabel actor={actor} />
+      </>
+    );
+  }
+
+  if (actor.actorId === "actor.fact-to-benefit") {
+    return (
+      <>
+        <FactToBenefitGreybox />
+        <ActorDebugLabel actor={actor} />
+      </>
+    );
+  }
+
+  if (actor.actorId === "actor.output-cards") {
+    return (
+      <>
+        <OutputCardsGreybox />
+        <ActorDebugLabel actor={actor} />
+      </>
+    );
+  }
+
+  if (actor.actorId === "actor.human-review") {
+    return (
+      <>
+        <HumanReviewGreybox />
+        <ActorDebugLabel actor={actor} />
+      </>
+    );
+  }
+
+  if (actor.actorId === "actor.action-confirm-gate") {
+    return (
+      <>
+        <ActionConfirmGateGreybox />
+        <ActorDebugLabel actor={actor} />
+      </>
+    );
+  }
+
+  if (actor.actorId === "actor.scenario-radar") {
+    return (
+      <>
+        <ScenarioRadarGreybox />
+        <ActorDebugLabel actor={actor} />
+      </>
+    );
+  }
+
+  if (actor.actorId === "actor.cta-dock") {
+    return (
+      <>
+        <CtaDockGreybox />
+        <ActorDebugLabel actor={actor} />
+      </>
+    );
+  }
+
   return <ActorDebugLabel actor={actor} />;
 }
 
@@ -470,6 +544,112 @@ function LedgerDialGreybox() {
       <span className="ledger-quadrant q3" />
       <span className="ledger-quadrant q4" />
     </div>
+  );
+}
+
+function SourcePacketGreybox() {
+  return (
+    <section className="spatial-lab-source-packet-geometry" data-actor-geometry="source-packet">
+      <span className="actor-body-kicker">资料包</span>
+      <strong>已知资料</strong>
+      <div aria-hidden="true" className="source-packet-lines">
+        <span />
+        <span />
+        <span />
+      </div>
+      <small>未知字段待确认</small>
+    </section>
+  );
+}
+
+function FactToBenefitGreybox() {
+  return (
+    <section className="spatial-lab-fact-benefit-geometry" data-actor-geometry="fact-to-benefit">
+      <span className="actor-body-kicker">转译</span>
+      <div className="fact-benefit-flow" aria-hidden="true">
+        <span>事实</span>
+        <i />
+        <span>利益</span>
+      </div>
+      <small>只改表达，不改事实</small>
+    </section>
+  );
+}
+
+function OutputCardsGreybox() {
+  const departments = ["市场", "销售", "视频", "外贸", "客服"];
+
+  return (
+    <section className="spatial-lab-output-cards-geometry" data-actor-geometry="output-cards">
+      <span className="actor-body-kicker">部门输出</span>
+      <div className="output-card-slots" aria-hidden="true">
+        {departments.map((department) => (
+          <span key={department}>{department}</span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function HumanReviewGreybox() {
+  return (
+    <section className="spatial-lab-human-review-geometry" data-actor-geometry="human-review">
+      <span className="actor-body-kicker">人工审核</span>
+      <strong>承诺前先核对</strong>
+      <div className="human-review-checks" aria-hidden="true">
+        <span>事实</span>
+        <span>边界</span>
+        <span>语气</span>
+      </div>
+    </section>
+  );
+}
+
+function ActionConfirmGateGreybox() {
+  return (
+    <section className="spatial-lab-action-confirm-geometry" data-actor-geometry="action-confirm-gate">
+      <span className="actor-body-kicker">负责人确认</span>
+      <strong>生成和执行分开</strong>
+      <div className="action-confirm-switch" aria-hidden="true">
+        <span />
+        <i />
+      </div>
+    </section>
+  );
+}
+
+function ScenarioRadarGreybox() {
+  const labels = ["重复最多", "资料最散", "最缺模板", "30 天验证"];
+
+  return (
+    <section className="spatial-lab-scenario-radar-geometry" data-actor-geometry="scenario-radar">
+      <span className="radar-ring ring-a" />
+      <span className="radar-ring ring-b" />
+      <span className="radar-axis horizontal" />
+      <span className="radar-axis vertical" />
+      <strong>第一个场景</strong>
+      <div className="radar-labels">
+        {labels.map((label) => (
+          <span key={label}>{label}</span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CtaDockGreybox() {
+  return (
+    <section className="spatial-lab-cta-dock-geometry" data-actor-geometry="cta-dock">
+      <span className="actor-body-kicker">下一步</span>
+      <strong>CTA 占位</strong>
+      <div className="cta-placeholder-grid" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+      <small>真实二维码待确认</small>
+    </section>
   );
 }
 

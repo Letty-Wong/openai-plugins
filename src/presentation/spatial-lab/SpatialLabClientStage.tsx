@@ -462,6 +462,9 @@ function ActorGeometry({
 function SafetyBoundaryGreybox({ target }: { readonly target: StageTarget }) {
   return (
     <div className="spatial-lab-safety-boundary-geometry" data-actor-geometry="safety-boundary">
+      <div className="safety-depth-ring ring-far" aria-hidden="true" />
+      <div className="safety-depth-ring ring-mid" aria-hidden="true" />
+      <div className="safety-control-field" aria-hidden="true" />
       <div className="safety-boundary-frame" />
       <div className="safety-boundary-axis horizontal" />
       <div className="safety-boundary-axis vertical" />

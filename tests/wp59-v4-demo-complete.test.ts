@@ -100,5 +100,5 @@ test("WP-59 VP-02 keeps the freeze headline clear of the product anchor", () => 
 
   assert.ok(Math.abs(freeze.camera.x + freeze.actors["actor.product-stage"].x) <= 40);
   assert.ok(freeze.actors["actor.product-stage"].y >= 96);
-  assert.match(cssSource, /data-world-motion-state="frozen"[\s\S]*top: 23%/);
+  assert.match(cssSource, /data-world-motion-state="frozen"[\s\S]*top: 27%/);
 });

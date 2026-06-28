@@ -107,19 +107,20 @@ test("WP-51 SR-04 keeps the ring anchor and product actor identity through 08 to
   assert.equal(turnRing.geometry.segmentProgress.length, 5);
 });
 
-test("WP-51 SR-05 uses the FT-02 waypoint plan without changing actor identity", () => {
+test("WP-51 SR-05 uses the FT-02 spatial state plan without changing actor identity", () => {
   const freeze = resolveStageTarget("15.8");
   const portal = resolveStageTarget("16.1");
   const visibleArtifacts = Object.values(portal.artifacts).filter((artifact) => artifact.visible);
 
   assert.equal(portal.transition?.gate, "SR-05");
-  assert.equal(portal.transition.acceptanceFocus[0], "FT-02 forward safety portal waypoints are active");
+  assert.equal(portal.transition.acceptanceFocus[0], "FT-02 forward safety portal spatial states are active");
   assert.equal(freeze.actors["actor.product-stage"].actorId, portal.actors["actor.product-stage"].actorId);
   assert.ok(portal.actors["actor.product-stage"].opacity > 0.5);
   assert.equal(portal.actors["actor.integration-ring"].geometry.role, "safety-boundary");
   assert.ok(visibleArtifacts.length <= 3);
   assert.ok(portal.camera.scale < 2);
-  assert.equal(portal.transitionPlan?.waypoints.length, 5);
+  assert.ok(portal.transitionPlan && "states" in portal.transitionPlan);
+  assert.equal(portal.transitionPlan.states.length, 5);
 });
 
 test("WP-51 SR-06 keeps ActionPath identity through the FT-04 final loop endpoint", () => {

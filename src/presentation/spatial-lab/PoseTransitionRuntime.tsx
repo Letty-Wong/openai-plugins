@@ -4,6 +4,8 @@ import type { CSSProperties } from "react";
 import { useLayoutEffect, useRef } from "react";
 import { gsap } from "gsap";
 import type {
+  LabTransitionPlan,
+  SpatialState,
   SpatialTransitionPlan,
   SpatialWaypointTarget,
   StageTarget
@@ -16,6 +18,10 @@ type PoseTransitionRuntimeProps = {
   readonly target: StageTarget;
 };
 
+type ActivePlayback = {
+  kill: () => void;
+};
+
 export function PoseTransitionRuntime({
   reducedMotion,
   target
@@ -24,7 +30,7 @@ export function PoseTransitionRuntime({
   const runtimeRef = useRef<{
     readonly root: HTMLElement;
   } | null>(null);
-  const activeTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const activePlaybackRef = useRef<ActivePlayback | null>(null);
   const previousTargetRef = useRef<StageTarget | null>(null);
 
   useLayoutEffect(() => {
@@ -35,9 +41,9 @@ export function PoseTransitionRuntime({
 
     return () => {
       const poseNodes = getPoseNodes(root);
-      activeTimelineRef.current?.kill();
+      activePlaybackRef.current?.kill();
       gsap.killTweensOf(poseNodes);
-      activeTimelineRef.current = null;
+      activePlaybackRef.current = null;
       runtimeRef.current = null;
     };
   }, []);
@@ -51,11 +57,11 @@ export function PoseTransitionRuntime({
     const playback = getTransitionPlayback(previousTarget, target);
 
     const duration = getDuration(target.movementKind, reducedMotion || target.reducedMotion);
-    activeTimelineRef.current?.kill();
+    activePlaybackRef.current?.kill();
     gsap.killTweensOf(poseNodes);
 
     if (playback && !(reducedMotion || target.reducedMotion)) {
-      activeTimelineRef.current = playTransitionPlan(root, playback.plan, playback.direction);
+      activePlaybackRef.current = playTransitionPlayback(root, playback.plan, playback.direction);
     } else {
       applyPoseTarget(root, target, playback ? 0.22 : duration);
     }
@@ -116,11 +122,116 @@ function applyPoseTarget(root: HTMLElement, target: RuntimePoseTarget, duration:
   });
 }
 
-function playTransitionPlan(
+function playTransitionPlayback(
+  root: HTMLElement,
+  plan: LabTransitionPlan,
+  direction: "forward" | "backward"
+) {
+  if (plan.model === "spatial-state") {
+    return playSpatialStatePlan(root, plan, direction);
+  }
+
+  return playLegacyWaypointPlan(root, plan, direction);
+}
+
+function playSpatialStatePlan(
   root: HTMLElement,
   plan: SpatialTransitionPlan,
   direction: "forward" | "backward"
+): ActivePlayback {
+  const states = direction === "forward"
+    ? plan.states
+    : [...plan.states].reverse();
+  const activeTweens = new Set<gsap.core.Tween>();
+  let killed = false;
+  let index = 1;
+
+  const playNextState = () => {
+    if (killed || index >= states.length) return;
+    const state = states[index];
+    index += 1;
+    interpolateSpatialState(root, state, activeTweens, playNextState);
+  };
+
+  playNextState();
+
+  return {
+    kill: () => {
+      killed = true;
+      activeTweens.forEach((tween) => tween.kill());
+      activeTweens.clear();
+    }
+  };
+}
+
+function interpolateSpatialState(
+  root: HTMLElement,
+  state: SpatialState,
+  activeTweens: Set<gsap.core.Tween>,
+  onComplete: () => void
 ) {
+  const tweens = createStateTweens(root, state, spatialStateStepDuration(state));
+  let pending = tweens.length;
+
+  if (pending === 0) {
+    onComplete();
+    return;
+  }
+
+  tweens.forEach((tween) => {
+    activeTweens.add(tween);
+    tween.eventCallback("onComplete", () => {
+      activeTweens.delete(tween);
+      pending -= 1;
+      if (pending === 0) onComplete();
+    });
+  });
+}
+
+function createStateTweens(
+  root: HTMLElement,
+  state: SpatialState,
+  duration: number
+) {
+  const viewport = root.querySelector<HTMLElement>(".spatial-lab-viewport");
+  const camera = root.querySelector<HTMLElement>(".spatial-lab-world-camera");
+  const ring = root.querySelector<HTMLElement>(".spatial-lab-ring-geometry");
+  const tweens: gsap.core.Tween[] = [];
+  const common = { duration, ease: "power3.inOut", overwrite: "auto" as const };
+
+  if (viewport) tweens.push(gsap.to(viewport, { ...viewportVars(state), ...common }));
+  if (camera) tweens.push(gsap.to(camera, { ...cameraVars(state), ...common }));
+  if (ring) tweens.push(gsap.to(ring, { ...ringVars(state.actors["actor.integration-ring"]), ...common }));
+
+  Object.values(state.actors).forEach((actor) => {
+    const node = root.querySelector<HTMLElement>(
+      `.spatial-lab-actor[data-stage-actor-id="${actor.actorId}"]`
+    );
+    if (node) tweens.push(gsap.to(node, { ...actorVars(actor), ...common }));
+  });
+
+  Object.values(state.artifacts).forEach((artifact) => {
+    const node = root.querySelector<HTMLElement>(
+      `.spatial-lab-artifact[data-artifact-id="${artifact.artifactId}"]`
+    );
+    if (node) tweens.push(gsap.to(node, { ...artifactVars(artifact), ...common }));
+  });
+
+  return tweens;
+}
+
+function spatialStateStepDuration(state: SpatialState) {
+  if (state.id.includes(".B.")) return 0.24;
+  if (state.id.includes(".C.")) return 0.32;
+  if (state.id.includes(".D.")) return 0.34;
+  return 0.28;
+}
+
+function playLegacyWaypointPlan(
+  root: HTMLElement,
+  plan: Extract<LabTransitionPlan, { readonly model: "legacy-waypoint" }>,
+  direction: "forward" | "backward"
+): ActivePlayback {
   const timeline = gsap.timeline({ defaults: { ease: "power3.inOut", overwrite: "auto" } });
   const waypoints = direction === "forward"
     ? plan.waypoints
@@ -166,7 +277,7 @@ function addPoseTargetToTimeline(
 function getTransitionPlayback(
   previousTarget: StageTarget | null,
   target: StageTarget
-): { readonly direction: "forward" | "backward"; readonly plan: SpatialTransitionPlan } | undefined {
+): { readonly direction: "forward" | "backward"; readonly plan: LabTransitionPlan } | undefined {
   if (!previousTarget) return undefined;
 
   if (previousTarget.beatId === "15.8" && target.beatId === "16.1" && target.transitionPlan) {

@@ -99,5 +99,5 @@ test("WP-57 FT-01.1 freezes 15.8 before the forward tunnel takes over", () => {
   assert.equal(freeze.artifacts["artifact.F01"].mode, "department-output");
   assert.equal(freeze.actors["actor.integration-ring"].geometry.role, "department-output-freeze");
   assert.equal(departmentSlots.length, 5);
-  assert.equal(tunnel.transition?.acceptanceFocus[0], "FT-02 forward safety portal waypoints are active");
+  assert.equal(tunnel.transition?.acceptanceFocus[0], "FT-02 forward safety portal spatial states are active");
 });

@@ -43,6 +43,11 @@ export type LabWorldTarget = {
   readonly tone: LabWorldTone;
 };
 
+export type WorldField = LabWorldTarget & {
+  readonly compression: number;
+  readonly density: number;
+};
+
 export type LabCameraTarget = CameraPose & {
   readonly focusActorId?: StageActorId;
   readonly perspective: number;
@@ -141,12 +146,25 @@ export type LabSafetyNodeTarget = {
   readonly visible: boolean;
 };
 
+export type PrimaryAnchor = {
+  readonly id: string;
+  readonly type: "camera" | "actor" | "artifact" | "world";
+};
+
 export type SpatialWaypointTarget = {
   readonly actors: LabActorTargets;
   readonly artifacts: Readonly<Record<LabArtifactId, LabArtifactTarget>>;
   readonly camera: LabCameraTarget;
   readonly portal: LabPortalTarget;
   readonly world: LabWorldTarget;
+};
+
+export type SpatialState = Omit<SpatialWaypointTarget, "world"> & {
+  readonly id: string;
+  readonly label: string;
+  readonly primaryAnchor: PrimaryAnchor;
+  readonly ring: RingGeometryTarget;
+  readonly world: WorldField;
 };
 
 export type SpatialWaypoint = {
@@ -159,9 +177,20 @@ export type SpatialWaypoint = {
 export type SpatialTransitionPlan = {
   readonly fromBeatId: BeatId;
   readonly id: string;
+  readonly model: "spatial-state";
+  readonly states: readonly SpatialState[];
+  readonly toBeatId: BeatId;
+};
+
+export type LegacySpatialWaypointPlan = {
+  readonly fromBeatId: BeatId;
+  readonly id: string;
+  readonly model: "legacy-waypoint";
   readonly toBeatId: BeatId;
   readonly waypoints: readonly SpatialWaypoint[];
 };
+
+export type LabTransitionPlan = SpatialTransitionPlan | LegacySpatialWaypointPlan;
 
 export type StageTarget = {
   readonly actors: LabActorTargets;
@@ -178,7 +207,7 @@ export type StageTarget = {
   readonly safetyNodes: readonly LabSafetyNodeTarget[];
   readonly sceneNumber: number;
   readonly transition?: LabTransitionTarget;
-  readonly transitionPlan?: SpatialTransitionPlan;
+  readonly transitionPlan?: LabTransitionPlan;
   readonly world: LabWorldTarget;
 };
 
@@ -307,7 +336,7 @@ const transitionMetadataByBeatId: Readonly<Partial<Record<BeatId, LabTransitionT
   },
   "16.1": {
     acceptanceFocus: [
-      "FT-02 forward safety portal waypoints are active",
+      "FT-02 forward safety portal spatial states are active",
       "Ring and ProductStage keep stable actor ids",
       "Reduced motion establishes the safety endpoint without a large Z-axis tunnel"
     ],
@@ -1735,113 +1764,144 @@ function attachSpatialTransitionPlan(target: StageTarget, reducedMotion: boolean
 }
 
 function createFt02ForwardPortalPlan(from: StageTarget, to: StageTarget): SpatialTransitionPlan {
-  const w0 = waypoint("W0", "frozen-output", 0.18, snapshot(from));
-  const w1 = waypoint("W1", "portal-preview", 0.3, patchSnapshot(from, {
-    actors: {
-      "actor.integration-ring": { scale: 0.96, x: -164, y: 2, z: 80 },
-      "actor.product-stage": { scale: 0.88, x: 58, y: 36, z: 142 }
-    },
-    portal: {
-      edgeProgress: 0.18,
-      oldWorldOpacity: 1,
-      opacity: 0.72,
-      radius: 168,
-      safetyOpacity: 0.58,
-      scale: 0.96,
-      visible: true,
-      x: -164,
-      y: 2,
-      z: 118
-    },
-    world: { lightingMode: "product", motionState: "portal", tone: "paper" }
-  }));
-  const w2 = waypoint("W2", "approach-ring", 0.34, patchSnapshot(from, {
-    actors: {
-      "actor.integration-ring": { scale: 1.58, x: -58, y: -2, z: 300 },
-      "actor.product-stage": { scale: 0.82, x: 20, y: 42, z: 70 },
-      "actor.safety-boundary": { cameraPresence: "support", scale: 0.86, x: 138, y: -10, z: 210 }
-    },
-    artifacts: {
-      "artifact.F01": { cameraPresence: "support", scale: 1.18, x: -520, y: 76, z: 420 },
-      "artifact.F02": { cameraPresence: "support", scale: 1.14, x: 520, y: 4, z: 420 },
-      "artifact.F03": { cameraPresence: "latent", scale: 0.72, x: 40, y: 168, z: -180 }
-    },
-    camera: {
-      depthBand: "near",
-      focusActorId: "actor.integration-ring",
-      perspective: 1240,
-      poseId: "camera.ft02.approach-ring",
-      rotationX: 1,
-      rotationY: -5,
-      rotationZ: 0,
-      scale: 1.18,
-      x: -20,
-      y: -18,
-      z: 230
-    },
-    portal: {
-      edgeProgress: 0.44,
-      oldWorldOpacity: 0.72,
-      opacity: 0.86,
-      radius: 260,
-      safetyOpacity: 0.76,
-      scale: 1.24,
-      visible: true,
-      x: -58,
-      y: -2,
-      z: 300
-    },
-    world: { lightingMode: "product", motionState: "portal", tone: "paper" }
-  }));
-  const w3 = waypoint("W3", "cross-ring-edge", 0.32, patchSnapshot(from, {
-    actors: {
-      "actor.integration-ring": { scale: 3.42, x: -2, y: 0, z: 620 },
-      "actor.product-stage": { scale: 0.66, x: -124, y: 52, z: -120 },
-      "actor.safety-boundary": { cameraPresence: "support", scale: 1.04, x: 126, y: -8, z: 260 }
-    },
-    artifacts: {
-      "artifact.F01": { cameraPresence: "support", scale: 1.46, x: -720, y: 70, z: 680 },
-      "artifact.F02": { cameraPresence: "support", scale: 1.42, x: 740, y: -34, z: 650 },
-      "artifact.F03": { cameraPresence: "latent", scale: 0.72, x: 120, y: 168, z: -240 }
-    },
-    camera: {
-      depthBand: "near",
-      focusActorId: "actor.integration-ring",
-      perspective: 1300,
-      poseId: "camera.ft02.cross-ring-edge",
-      rotationX: 0,
-      rotationY: -3,
-      rotationZ: 0,
-      scale: 1.42,
-      x: -10,
-      y: -16,
-      z: 420
-    },
-    portal: {
-      edgeProgress: 0.82,
-      oldWorldOpacity: 0.2,
-      opacity: 0.96,
-      radius: 620,
-      safetyOpacity: 0.9,
-      scale: 1.62,
-      visible: true,
-      x: -8,
-      y: 0,
-      z: 620
-    },
-    world: { lightingMode: "safety", motionState: "portal", tone: "dark" }
-  }));
-  const w4 = waypoint("W4", "establish-safety-world", 0.34, snapshot(to));
+  const stateA = spatialState(
+    "state.ft02.A.frozen-compression-field",
+    "frozen compression field",
+    snapshot(from),
+    { id: "world.frozen-output", type: "world" },
+    { compression: 0.86, density: 0.78 }
+  );
+  const stateB = spatialState(
+    "state.ft02.B.portal-emergence-field",
+    "portal emergence field",
+    patchSnapshot(from, {
+      actors: {
+        "actor.integration-ring": { scale: 0.96, x: -164, y: 2, z: 80 },
+        "actor.product-stage": { scale: 0.88, x: 58, y: 36, z: 142 }
+      },
+      portal: {
+        edgeProgress: 0.18,
+        oldWorldOpacity: 1,
+        opacity: 0.72,
+        radius: 168,
+        safetyOpacity: 0.58,
+        scale: 0.96,
+        visible: true,
+        x: -164,
+        y: 2,
+        z: 118
+      },
+      world: { lightingMode: "product", motionState: "portal", tone: "paper" }
+    }),
+    { id: "actor.integration-ring", type: "actor" },
+    { compression: 0.72, density: 0.88 }
+  );
+  const stateC = spatialState(
+    "state.ft02.C.boundary-approach-field",
+    "boundary approach field",
+    patchSnapshot(from, {
+      actors: {
+        "actor.integration-ring": { scale: 1.58, x: -58, y: -2, z: 300 },
+        "actor.product-stage": { scale: 0.82, x: 20, y: 42, z: 70 },
+        "actor.safety-boundary": { cameraPresence: "support", scale: 0.86, x: 138, y: -10, z: 210 }
+      },
+      artifacts: {
+        "artifact.F01": { cameraPresence: "support", scale: 1.18, x: -520, y: 76, z: 420 },
+        "artifact.F02": { cameraPresence: "support", scale: 1.14, x: 520, y: 4, z: 420 },
+        "artifact.F03": { cameraPresence: "latent", scale: 0.72, x: 40, y: 168, z: -180 }
+      },
+      camera: {
+        depthBand: "near",
+        focusActorId: "actor.integration-ring",
+        perspective: 1240,
+        poseId: "camera.ft02.approach-ring",
+        rotationX: 1,
+        rotationY: -5,
+        rotationZ: 0,
+        scale: 1.18,
+        x: -20,
+        y: -18,
+        z: 230
+      },
+      portal: {
+        edgeProgress: 0.44,
+        oldWorldOpacity: 0.72,
+        opacity: 0.86,
+        radius: 260,
+        safetyOpacity: 0.76,
+        scale: 1.24,
+        visible: true,
+        x: -58,
+        y: -2,
+        z: 300
+      },
+      world: { lightingMode: "product", motionState: "portal", tone: "paper" }
+    }),
+    { id: "camera.ft02.approach-ring", type: "camera" },
+    { compression: 0.48, density: 0.96 }
+  );
+  const stateD = spatialState(
+    "state.ft02.D.boundary-crossing-field",
+    "boundary crossing field",
+    patchSnapshot(from, {
+      actors: {
+        "actor.integration-ring": { scale: 3.42, x: -2, y: 0, z: 620 },
+        "actor.product-stage": { scale: 0.66, x: -124, y: 52, z: -120 },
+        "actor.safety-boundary": { cameraPresence: "support", scale: 1.04, x: 126, y: -8, z: 260 }
+      },
+      artifacts: {
+        "artifact.F01": { cameraPresence: "support", scale: 1.46, x: -720, y: 70, z: 680 },
+        "artifact.F02": { cameraPresence: "support", scale: 1.42, x: 740, y: -34, z: 650 },
+        "artifact.F03": { cameraPresence: "latent", scale: 0.72, x: 120, y: 168, z: -240 }
+      },
+      camera: {
+        depthBand: "near",
+        focusActorId: "actor.integration-ring",
+        perspective: 1300,
+        poseId: "camera.ft02.cross-ring-edge",
+        rotationX: 0,
+        rotationY: -3,
+        rotationZ: 0,
+        scale: 1.42,
+        x: -10,
+        y: -16,
+        z: 420
+      },
+      portal: {
+        edgeProgress: 0.82,
+        oldWorldOpacity: 0.2,
+        opacity: 0.96,
+        radius: 620,
+        safetyOpacity: 0.9,
+        scale: 1.62,
+        visible: true,
+        x: -8,
+        y: 0,
+        z: 620
+      },
+      world: { lightingMode: "safety", motionState: "portal", tone: "dark" }
+    }),
+    { id: "camera.ft02.cross-ring-edge", type: "camera" },
+    { compression: 0.24, density: 0.92 }
+  );
+  const stateE = spatialState(
+    "state.ft02.E.safety-field-stable",
+    "safety field stable",
+    snapshot(to),
+    { id: "world.safety-volume", type: "world" },
+    { compression: 0.34, density: 0.64 }
+  );
 
   return {
     fromBeatId: "15.8",
     id: "transition-plan.ft02.forward-safety-portal",
-    toBeatId: "16.1",
-    waypoints: [w0, w1, w2, w3, w4]
+    model: "spatial-state",
+    states: [stateA, stateB, stateC, stateD, stateE],
+    toBeatId: "16.1"
   };
 }
 
-function createFt04FinalePullbackPlan(from: StageTarget, to: StageTarget): SpatialTransitionPlan {
+function createFt04FinalePullbackPlan(from: StageTarget, to: StageTarget): LegacySpatialWaypointPlan {
   const w0 = waypoint("W0", "action-route-complete", 0.18, snapshot(from));
   const w1 = waypoint("W1", "loop-begins-to-close", 0.28, patchSnapshot(from, {
     actors: {
@@ -1898,8 +1958,30 @@ function createFt04FinalePullbackPlan(from: StageTarget, to: StageTarget): Spati
   return {
     fromBeatId: "20.10",
     id: "transition-plan.ft04.finale-pullback-loop",
+    model: "legacy-waypoint",
     toBeatId: "21.1",
     waypoints: [w0, w1, w2, w3]
+  };
+}
+
+function spatialState(
+  id: string,
+  label: string,
+  target: SpatialWaypointTarget,
+  primaryAnchor: PrimaryAnchor,
+  field: Pick<WorldField, "compression" | "density">
+): SpatialState {
+  return {
+    ...target,
+    id,
+    label,
+    primaryAnchor,
+    ring: target.actors["actor.integration-ring"].geometry,
+    world: {
+      ...target.world,
+      compression: field.compression,
+      density: field.density
+    }
   };
 }
 

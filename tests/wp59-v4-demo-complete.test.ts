@@ -40,7 +40,9 @@ test("WP-59 FT-04 establishes the final pullback loop with placeholder CTA only"
   assert.equal(plan?.id, "transition-plan.ft04.finale-pullback-loop");
   assert.equal(plan?.fromBeatId, "20.10");
   assert.equal(plan?.toBeatId, "21.1");
-  assert.deepEqual(plan?.waypoints.map((waypoint) => waypoint.label), [
+  assert.equal(plan?.model, "legacy-waypoint");
+  assert.ok(plan && "waypoints" in plan);
+  assert.deepEqual(plan.waypoints.map((waypoint) => waypoint.label), [
     "action-route-complete",
     "loop-begins-to-close",
     "pull-back-to-reveal-loop",

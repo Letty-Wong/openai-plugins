@@ -632,12 +632,44 @@
   border-color: rgba(31, 29, 25, 0.18);
 }
 
+.spatial-lab-judgement-stack,
 .spatial-lab-judgement-geometry,
 .spatial-lab-trend-geometry,
 .spatial-lab-ledger-geometry {
   height: 100%;
   position: relative;
   width: 100%;
+}
+
+.spatial-lab-judgement-stack {
+  transform-style: preserve-3d;
+}
+
+.spatial-lab-judgement-stack .spatial-lab-judgement-geometry,
+.spatial-lab-judgement-stack .spatial-lab-trend-geometry {
+  inset: 0;
+  position: absolute;
+  transition:
+    opacity 260ms ease,
+    transform 260ms ease;
+}
+
+.spatial-lab-judgement-stack[data-judgement-variant="trend"] .spatial-lab-judgement-geometry {
+  opacity: 0.2;
+  transform: translateZ(-80px) scale(0.88);
+}
+
+.spatial-lab-judgement-stack:not([data-judgement-variant="trend"]) .spatial-lab-trend-geometry {
+  opacity: 0;
+  transform: translateZ(-70px) scale(0.88);
+}
+
+.spatial-lab-judgement-stack[data-judgement-variant="gap"] .spatial-lab-judgement-branch.branch-a {
+  transform: rotate(-34deg);
+}
+
+.spatial-lab-judgement-stack[data-judgement-variant="gap"] .spatial-lab-judgement-branch.branch-b {
+  transform: rotate(34deg);
 }
 
 .spatial-lab-judgement-orbit {
@@ -888,6 +920,28 @@
   left: -1%;
   top: 50%;
   transform: translateY(-50%);
+}
+
+.spatial-lab-root[data-current-beat-id^="17."] .safety-boundary-nodes span[data-safety-node-id="data"],
+.spatial-lab-root[data-current-beat-id^="17."] .safety-boundary-nodes span[data-safety-node-id="tool"] {
+  border-color: rgba(214, 95, 81, 0.7);
+  box-shadow:
+    0 20px 42px rgba(0, 0, 0, 0.32),
+    0 0 0 7px rgba(214, 95, 81, 0.1),
+    inset 0 1px 0 rgba(242, 234, 220, 0.18);
+  color: #fffaf0;
+}
+
+.spatial-lab-root[data-current-beat-id^="17."] .safety-boundary-nodes span[data-safety-node-id="content"],
+.spatial-lab-root[data-current-beat-id^="17."] .safety-boundary-nodes span[data-safety-node-id="permission"] {
+  opacity: 0.48;
+}
+
+.spatial-lab-root[data-current-beat-id^="19."] .safety-boundary-nodes span {
+  font-size: 15px;
+  height: 60px;
+  opacity: 0.72;
+  width: 98px;
 }
 
 .spatial-lab-action-path-geometry {

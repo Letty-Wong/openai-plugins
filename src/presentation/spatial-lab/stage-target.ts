@@ -623,7 +623,7 @@ function createBaseTarget(
 }
 
 function createSafetyNodeTargets(beatId: BeatId): readonly LabSafetyNodeTarget[] {
-  const visible = isAtOrAfter(beatId, "16.1") && !isAtOrAfter(beatId, "19.1");
+  const visible = isAtOrAfter(beatId, "16.1") && !isAtOrAfter(beatId, "19.9");
   return labSafetyNodes.map((node) => ({ ...node, visible }));
 }
 
@@ -1004,6 +1004,7 @@ function artifactPoseForEquality(artifact: LabArtifactTarget) {
 
 function getExplicitStageTarget(beatId: BeatId, sceneNumber: number): ProofTarget | undefined {
   return getFixA4ProofTarget(beatId)
+    ?? getLedgerContinuityTarget(beatId, sceneNumber)
     ?? getFt01ProductJourneyTarget(beatId, sceneNumber)
     ?? getFt02SafetyPortalTarget(beatId)
     ?? getFt03SafetyActionTarget(beatId, sceneNumber)
@@ -1148,10 +1149,10 @@ function getFt01ProductJourneyTarget(beatId: BeatId, sceneNumber: number): Proof
       "actor.integration-ring": {
         cameraPresence: "support",
         rotateY: isFreezeBeat ? -4 : -10,
-        scale: isFreezeBeat ? 0.82 : 1.08,
-        x: isFreezeBeat ? -218 : -112,
-        y: isFreezeBeat ? 78 : -6,
-        z: isFreezeBeat ? -48 : 18
+        scale: isFreezeBeat ? 0.9 : 1.08,
+        x: isFreezeBeat ? -146 : -112,
+        y: isFreezeBeat ? 58 : -6,
+        z: isFreezeBeat ? -12 : 18
       },
       "actor.product-stage": {
         cameraPresence: "featured",
@@ -1629,7 +1630,7 @@ function createActionRouteTarget(beatId: BeatId): ProofTarget {
       },
       "actor.action-path": {
         cameraPresence: "featured",
-        scale: isFinalActionBeat ? 1.2 : 1,
+        scale: isFinalActionBeat ? 1.03 : 1,
         x: isFinalActionBeat ? 82 : 8,
         y: isFinalActionBeat ? 68 : 120,
         z: isFinalActionBeat ? 210 : 160
@@ -1740,6 +1741,16 @@ function getFt04FinaleTarget(beatId: BeatId): ProofTarget | undefined {
 }
 
 function attachSpatialTransitionPlan(target: StageTarget, reducedMotion: boolean): StageTarget {
+  if (target.beatId === "09.1") {
+    const capabilityCore = resolveStageTarget("08.7", { reducedMotion });
+    const plan = createFt01ProductTurnPlan(capabilityCore, target);
+
+    return {
+      ...target,
+      transitionPlan: plan
+    };
+  }
+
   if (target.beatId === "16.1") {
     const frozenOutput = resolveStageTarget("15.8", { reducedMotion });
     const plan = createFt02ForwardPortalPlan(frozenOutput, target);
@@ -1761,6 +1772,62 @@ function attachSpatialTransitionPlan(target: StageTarget, reducedMotion: boolean
   }
 
   return target;
+}
+
+function createFt01ProductTurnPlan(from: StageTarget, to: StageTarget): SpatialTransitionPlan {
+  const stateA = spatialState(
+    "state.ft01.A.capability-core",
+    "capability core",
+    snapshot(from),
+    { id: "actor.integration-ring", type: "actor" },
+    { compression: 0.58, density: 0.62 }
+  );
+  const stateB = spatialState(
+    "state.ft01.B.product-window-opening",
+    "product window opening",
+    patchSnapshot(from, {
+      actors: {
+        "actor.integration-ring": { scale: 1.08, x: -118, y: -16, z: 24 },
+        "actor.product-stage": { cameraPresence: "featured", opacity: 0.78, scale: 0.92, x: 58, y: 24, z: 124 }
+      },
+      artifacts: {
+        "artifact.F01": { cameraPresence: "support", mode: "source", opacity: 0.34, scale: 0.72, x: 340, y: 120, z: 48 },
+        "artifact.F02": { cameraPresence: "latent", mode: "source", scale: 0.7, x: 410, y: 82, z: 20 }
+      },
+      camera: {
+        depthBand: "mid",
+        focusActorId: "actor.product-stage",
+        perspective: 1180,
+        poseId: "camera.ft01.product-window-opening",
+        rotationX: 3,
+        rotationY: -6,
+        rotationZ: -1,
+        scale: 1.04,
+        x: -34,
+        y: -34,
+        z: 34
+      },
+      portal: createPortalTarget({ oldWorldOpacity: 0.86 }),
+      world: { lightingMode: "product", motionState: "active", tone: "paper" }
+    }),
+    { id: "actor.product-stage", type: "actor" },
+    { compression: 0.48, density: 0.72 }
+  );
+  const stateC = spatialState(
+    "state.ft01.C.product-source-station",
+    "product source station",
+    snapshot(to),
+    { id: "actor.product-stage", type: "actor" },
+    { compression: 0.42, density: 0.76 }
+  );
+
+  return {
+    fromBeatId: "08.7",
+    id: "transition-plan.ft01.product-turn",
+    model: "spatial-state",
+    states: [stateA, stateB, stateC],
+    toBeatId: "09.1"
+  };
 }
 
 function createFt02ForwardPortalPlan(from: StageTarget, to: StageTarget): SpatialTransitionPlan {
@@ -1930,7 +1997,7 @@ function createFt04FinalePullbackPlan(from: StageTarget, to: StageTarget): Legac
       "actor.integration-ring": { cameraPresence: "support", scale: 1.5, x: -126, y: -46, z: -190 },
       "actor.product-stage": { cameraPresence: "ambient", scale: 0.56, x: -304, y: 82, z: -260 },
       "actor.safety-boundary": { cameraPresence: "ambient", scale: 0.68, x: 160, y: -46, z: -210 },
-      "actor.action-path": { cameraPresence: "support", scale: 0.94, x: -2, y: 108, z: 28 },
+      "actor.action-path": { cameraPresence: "support", scale: 0.98, x: -2, y: 108, z: 28 },
       "actor.cta-dock": { cameraPresence: "featured", scale: 0.94, x: 226, y: -22, z: 150 }
     },
     artifacts: {
@@ -2077,6 +2144,84 @@ function patchArtifacts(
 function getFixA4ProofTarget(beatId: BeatId): ProofTarget | undefined {
   if (!fixA4ProofBeatIdSet.has(beatId)) return undefined;
   return fixA4ProofTargets[beatId as (typeof fixA4ProofBeatIds)[number]];
+}
+
+function getLedgerContinuityTarget(beatId: BeatId, sceneNumber: number): ProofTarget | undefined {
+  if (sceneNumber < 5 || sceneNumber > 7) return undefined;
+
+  const isOpenSource = sceneNumber === 6;
+  const isCompression = sceneNumber === 7;
+
+  return {
+    actorPatches: {
+      "actor.integration-ring": {
+        cameraPresence: "support",
+        rotateX: isCompression ? 8 : 5,
+        rotateY: isOpenSource ? -6 : -3,
+        scale: isOpenSource ? 1.2 : isCompression ? 1.04 : 1.13,
+        x: isOpenSource ? -168 : isCompression ? -112 : -138,
+        y: isOpenSource ? -74 : isCompression ? -58 : -88,
+        z: isOpenSource ? 24 : isCompression ? 12 : -14
+      },
+      "actor.ledger-dial": {
+        cameraPresence: "featured",
+        rotateZ: isOpenSource ? -5 : isCompression ? 4 : 0,
+        scale: isOpenSource ? 1.06 : isCompression ? 0.92 : 1.02,
+        x: isOpenSource ? 42 : isCompression ? -28 : 62,
+        y: isOpenSource ? 10 : isCompression ? 18 : 28,
+        z: isOpenSource ? 118 : isCompression ? 104 : 96
+      },
+      "actor.source-packet": {
+        cameraPresence: isOpenSource ? "support" : isCompression ? "ambient" : "latent",
+        scale: isOpenSource ? 0.74 : 0.62,
+        x: isOpenSource ? 248 : 214,
+        y: isOpenSource ? -70 : 122,
+        z: isOpenSource ? 106 : 24
+      },
+      "actor.output-cards": {
+        cameraPresence: isCompression ? "support" : "latent",
+        scale: 0.76,
+        x: 212,
+        y: 114,
+        z: 92
+      }
+    },
+    artifactPatches: isOpenSource
+      ? createVisibleArtifactPatches("source", [
+        { scale: 0.68, x: 238, y: 34, z: 70 },
+        { scale: 0.64, x: 316, y: -42, z: 78 },
+        { scale: 0.62, x: 342, y: 96, z: 64 }
+      ])
+      : isCompression
+        ? createVisibleArtifactPatches("source", [
+          { scale: 0.66, x: 146, y: 128, z: 52 },
+          { scale: 0.62, x: 248, y: 128, z: 58 }
+        ])
+        : createLatentArtifactPatches("source"),
+    camera: {
+      depthBand: "mid",
+      focusActorId: isCompression ? "actor.output-cards" : "actor.ledger-dial",
+      perspective: 1160,
+      poseId: `camera.rcfix02.${isOpenSource ? "open-source-ledger" : isCompression ? "compression-ledger" : "ledger-overview"}`,
+      rotationX: isCompression ? 6 : 5,
+      rotationY: isOpenSource ? -5 : -3,
+      rotationZ: isCompression ? 1 : -1,
+      scale: isOpenSource ? 1.03 : isCompression ? 1.02 : 1.01,
+      x: isOpenSource ? -32 : isCompression ? -46 : -20,
+      y: isOpenSource ? -146 : isCompression ? -132 : -162,
+      z: isOpenSource ? 18 : isCompression ? 30 : -4
+    },
+    portal: createPortalTarget({ oldWorldOpacity: 0 }),
+    ringGeometry: {
+      gap: isOpenSource ? 8 : isCompression ? 22 : 14,
+      glow: isOpenSource ? 0.5 : isCompression ? 0.36 : 0.42,
+      portalRadius: isOpenSource ? 150 : isCompression ? 118 : 132,
+      role: isOpenSource ? "open-source-expansion" : isCompression ? "repetition-compression" : "ledger-overview",
+      segmentProgress: isOpenSource ? [1, 0.92, 0.78, 0.7, 0.62] : isCompression ? [0.88, 0.82, 0.76, 0.62, 0.52] : [0.9, 0.82, 0.74, 0.66, 0.56],
+      thickness: isOpenSource ? 10 : isCompression ? 9 : 11
+    },
+    world: { lightingMode: "ledger", motionState: "active", tone: "dark" }
+  };
 }
 
 function stripCameraPresence(

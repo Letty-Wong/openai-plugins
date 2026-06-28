@@ -142,82 +142,25 @@ function playSpatialStatePlan(
   const states = direction === "forward"
     ? plan.states
     : [...plan.states].reverse();
-  const activeTweens = new Set<gsap.core.Tween>();
-  let killed = false;
-  let index = 1;
 
-  const playNextState = () => {
-    if (killed || index >= states.length) return;
-    const state = states[index];
-    index += 1;
-    interpolateSpatialState(root, state, activeTweens, playNextState);
-  };
-
-  playNextState();
-
-  return {
-    kill: () => {
-      killed = true;
-      activeTweens.forEach((tween) => tween.kill());
-      activeTweens.clear();
-    }
-  };
+  return compileSpatialStatePlan(root, states);
 }
 
-function interpolateSpatialState(
+function compileSpatialStatePlan(
   root: HTMLElement,
-  state: SpatialState,
-  activeTweens: Set<gsap.core.Tween>,
-  onComplete: () => void
-) {
-  const tweens = createStateTweens(root, state, spatialStateStepDuration(state));
-  let pending = tweens.length;
+  states: readonly SpatialState[]
+): gsap.core.Timeline {
+  const timeline = gsap.timeline({ defaults: { ease: "power3.inOut", overwrite: "auto" } });
+  let cursor = 0;
 
-  if (pending === 0) {
-    onComplete();
-    return;
-  }
-
-  tweens.forEach((tween) => {
-    activeTweens.add(tween);
-    tween.eventCallback("onComplete", () => {
-      activeTweens.delete(tween);
-      pending -= 1;
-      if (pending === 0) onComplete();
-    });
-  });
-}
-
-function createStateTweens(
-  root: HTMLElement,
-  state: SpatialState,
-  duration: number
-) {
-  const viewport = root.querySelector<HTMLElement>(".spatial-lab-viewport");
-  const camera = root.querySelector<HTMLElement>(".spatial-lab-world-camera");
-  const ring = root.querySelector<HTMLElement>(".spatial-lab-ring-geometry");
-  const tweens: gsap.core.Tween[] = [];
-  const common = { duration, ease: "power3.inOut", overwrite: "auto" as const };
-
-  if (viewport) tweens.push(gsap.to(viewport, { ...viewportVars(state), ...common }));
-  if (camera) tweens.push(gsap.to(camera, { ...cameraVars(state), ...common }));
-  if (ring) tweens.push(gsap.to(ring, { ...ringVars(state.actors["actor.integration-ring"]), ...common }));
-
-  Object.values(state.actors).forEach((actor) => {
-    const node = root.querySelector<HTMLElement>(
-      `.spatial-lab-actor[data-stage-actor-id="${actor.actorId}"]`
-    );
-    if (node) tweens.push(gsap.to(node, { ...actorVars(actor), ...common }));
+  states.slice(1).forEach((state) => {
+    const duration = spatialStateStepDuration(state);
+    timeline.addLabel(state.id, cursor);
+    addPoseTargetToTimeline(root, timeline, state, duration, state.id);
+    cursor += duration;
   });
 
-  Object.values(state.artifacts).forEach((artifact) => {
-    const node = root.querySelector<HTMLElement>(
-      `.spatial-lab-artifact[data-artifact-id="${artifact.artifactId}"]`
-    );
-    if (node) tweens.push(gsap.to(node, { ...artifactVars(artifact), ...common }));
-  });
-
-  return tweens;
+  return timeline;
 }
 
 function spatialStateStepDuration(state: SpatialState) {
@@ -248,12 +191,12 @@ function addPoseTargetToTimeline(
   root: HTMLElement,
   timeline: gsap.core.Timeline,
   target: SpatialWaypointTarget,
-  duration: number
+  duration: number,
+  position = ">"
 ) {
   const viewport = root.querySelector<HTMLElement>(".spatial-lab-viewport");
   const camera = root.querySelector<HTMLElement>(".spatial-lab-world-camera");
   const ring = root.querySelector<HTMLElement>(".spatial-lab-ring-geometry");
-  const position = ">";
 
   if (viewport) timeline.to(viewport, { ...viewportVars(target), duration }, position);
   if (camera) timeline.to(camera, { ...cameraVars(target), duration }, "<");
@@ -279,6 +222,14 @@ function getTransitionPlayback(
   target: StageTarget
 ): { readonly direction: "forward" | "backward"; readonly plan: LabTransitionPlan } | undefined {
   if (!previousTarget) return undefined;
+
+  if (previousTarget.beatId === "08.7" && target.beatId === "09.1" && target.transitionPlan) {
+    return { direction: "forward", plan: target.transitionPlan };
+  }
+
+  if (previousTarget.beatId === "09.1" && target.beatId === "08.7" && previousTarget.transitionPlan) {
+    return { direction: "backward", plan: previousTarget.transitionPlan };
+  }
 
   if (previousTarget.beatId === "15.8" && target.beatId === "16.1" && target.transitionPlan) {
     return { direction: "forward", plan: target.transitionPlan };

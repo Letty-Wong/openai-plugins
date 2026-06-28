@@ -539,16 +539,19 @@ function JudgementQuestionGreybox({ beatId }: { readonly beatId: BeatId }) {
       ? "gap"
       : "judgement";
 
-  if (variant === "trend") {
-    return <TrendTrackGreybox />;
-  }
-
   return (
-    <div className="spatial-lab-judgement-geometry" data-actor-geometry={`judgement-${variant}`}>
-      <div className="spatial-lab-judgement-orbit" />
-      <div className="spatial-lab-judgement-core" />
-      <div className="spatial-lab-judgement-branch branch-a" />
-      <div className="spatial-lab-judgement-branch branch-b" />
+    <div
+      className="spatial-lab-judgement-stack"
+      data-actor-geometry="judgement-question"
+      data-judgement-variant={variant}
+    >
+      <div className="spatial-lab-judgement-geometry" aria-hidden={variant === "trend"}>
+        <div className="spatial-lab-judgement-orbit" />
+        <div className="spatial-lab-judgement-core" />
+        <div className="spatial-lab-judgement-branch branch-a" />
+        <div className="spatial-lab-judgement-branch branch-b" />
+      </div>
+      <TrendTrackGreybox />
     </div>
   );
 }

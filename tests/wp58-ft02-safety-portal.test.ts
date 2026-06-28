@@ -88,8 +88,8 @@ test("WP-58 FT-02 extends the existing PoseTransitionRuntime instead of adding a
   const cssSource = readFileSync("src/styles/spatial-lab.css", "utf8");
 
   assert.match(runtimeSource, /function playSpatialStatePlan/);
+  assert.match(runtimeSource, /function compileSpatialStatePlan/);
   assert.match(runtimeSource, /function playLegacyWaypointPlan/);
-  assert.match(runtimeSource, /interpolateSpatialState/);
   assert.match(runtimeSource, /getTransitionPlayback/);
   assert.match(runtimeSource, /previousTarget\.beatId === "15\.8" && target\.beatId === "16\.1"/);
   assert.match(runtimeSource, /previousTarget\.beatId === "16\.1" && target\.beatId === "15\.8"/);
@@ -97,5 +97,6 @@ test("WP-58 FT-02 extends the existing PoseTransitionRuntime instead of adding a
   assert.match(labSource, /function SafetyBoundaryGreybox/);
   assert.match(cssSource, /data-world-lighting-mode="safety"[\s\S]*--lab-old-world-opacity/);
   assert.doesNotMatch(runtimeSource, /fromTo/);
+  assert.doesNotMatch(runtimeSource, /playNextState|interpolateSpatialState/);
   assert.doesNotMatch(labSource, /Second.*Runtime|Portal.*Runtime|Tunnel.*Runtime/);
 });

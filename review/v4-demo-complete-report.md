@@ -15,7 +15,7 @@
   - 同一个 `IntegrationRing` 收束为最终闭环。
   - 同一个 `ProductStage` 保留为业务证据锚点。
   - 同一个 `ActionPath` 与 `CtaDock` 进入终幕。
-  - CTA 仅为占位，明确显示“真实二维码待确认”。
+  - CTA 仅为占位，明确显示“二维码待配置”。
 - VP-01：客户观感视觉统一。
   - ProductStage 增加高级占位背板、光晕与基线，但仍复用原 ProductStage DOM Actor。
   - 资料包、人工审核、负责人确认、场景雷达、CTA dock 使用统一占位视觉语言。

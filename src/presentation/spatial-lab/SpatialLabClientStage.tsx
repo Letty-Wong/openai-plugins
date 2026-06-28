@@ -680,7 +680,7 @@ function CtaDockGreybox() {
         <span>场景诊断</span>
         <span>样板计划</span>
       </div>
-      <small>真实二维码待确认</small>
+      <small>二维码待配置</small>
     </section>
   );
 }

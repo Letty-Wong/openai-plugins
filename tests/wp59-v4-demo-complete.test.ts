@@ -67,7 +67,7 @@ test("WP-59 customer demo actors have audience bodies without engineering labels
   assert.match(labSource, /function ActionConfirmGateGreybox/);
   assert.match(labSource, /function ScenarioRadarGreybox/);
   assert.match(labSource, /function CtaDockGreybox/);
-  assert.match(labSource, /真实二维码待确认/);
+  assert.match(labSource, /二维码待配置/);
   assert.match(labSource, /演示后行动/);
   assert.match(labSource, /资料清单/);
   assert.match(actionPathSource, /30 分钟/);

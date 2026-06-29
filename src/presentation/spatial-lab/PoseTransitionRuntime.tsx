@@ -14,6 +14,7 @@ import type {
 gsap.config({ nullTargetWarn: false });
 
 type PoseTransitionRuntimeProps = {
+  readonly onTransitionSettled?: (beatId: StageTarget["beatId"]) => void;
   readonly reducedMotion: boolean;
   readonly target: StageTarget;
 };
@@ -23,6 +24,7 @@ type ActivePlayback = {
 };
 
 export function PoseTransitionRuntime({
+  onTransitionSettled,
   reducedMotion,
   target
 }: PoseTransitionRuntimeProps) {
@@ -61,13 +63,18 @@ export function PoseTransitionRuntime({
     gsap.killTweensOf(poseNodes);
 
     if (playback && !(reducedMotion || target.reducedMotion)) {
-      activePlaybackRef.current = playTransitionPlayback(root, playback.plan, playback.direction);
+      activePlaybackRef.current = playTransitionPlayback(root, playback.plan, playback.direction, target, () => {
+        onTransitionSettled?.(target.beatId);
+      });
     } else {
       applyPoseTarget(root, target, playback ? 0.22 : duration);
+      activePlaybackRef.current = settleAfterPoseTween(root, target, playback ? 0.22 : duration, () => {
+        onTransitionSettled?.(target.beatId);
+      });
     }
 
     previousTargetRef.current = target;
-  }, [reducedMotion, target]);
+  }, [onTransitionSettled, reducedMotion, target]);
 
   return (
     <div
@@ -125,32 +132,44 @@ function applyPoseTarget(root: HTMLElement, target: RuntimePoseTarget, duration:
 function playTransitionPlayback(
   root: HTMLElement,
   plan: LabTransitionPlan,
-  direction: "forward" | "backward"
+  direction: "forward" | "backward",
+  finalTarget: StageTarget,
+  onSettled: () => void
 ) {
   if (plan.model === "spatial-state") {
-    return playSpatialStatePlan(root, plan, direction);
+    return playSpatialStatePlan(root, plan, direction, finalTarget, onSettled);
   }
 
-  return playLegacyWaypointPlan(root, plan, direction);
+  return playLegacyWaypointPlan(root, plan, direction, finalTarget, onSettled);
 }
 
 function playSpatialStatePlan(
   root: HTMLElement,
   plan: SpatialTransitionPlan,
-  direction: "forward" | "backward"
+  direction: "forward" | "backward",
+  finalTarget: StageTarget,
+  onSettled: () => void
 ): ActivePlayback {
   const states = direction === "forward"
     ? plan.states
     : [...plan.states].reverse();
 
-  return compileSpatialStatePlan(root, states);
+  return compileSpatialStatePlan(root, states, finalTarget, onSettled);
 }
 
 function compileSpatialStatePlan(
   root: HTMLElement,
-  states: readonly SpatialState[]
+  states: readonly SpatialState[],
+  finalTarget: StageTarget,
+  onSettled: () => void
 ): gsap.core.Timeline {
-  const timeline = gsap.timeline({ defaults: { ease: "power3.inOut", overwrite: "auto" } });
+  const timeline = gsap.timeline({
+    defaults: { ease: "power3.inOut", overwrite: "auto" },
+    onComplete: () => {
+      applyPoseTarget(root, finalTarget, 0);
+      onSettled();
+    }
+  });
   let cursor = 0;
 
   states.slice(1).forEach((state) => {
@@ -173,9 +192,17 @@ function spatialStateStepDuration(state: SpatialState) {
 function playLegacyWaypointPlan(
   root: HTMLElement,
   plan: Extract<LabTransitionPlan, { readonly model: "legacy-waypoint" }>,
-  direction: "forward" | "backward"
+  direction: "forward" | "backward",
+  finalTarget: StageTarget,
+  onSettled: () => void
 ): ActivePlayback {
-  const timeline = gsap.timeline({ defaults: { ease: "power3.inOut", overwrite: "auto" } });
+  const timeline = gsap.timeline({
+    defaults: { ease: "power3.inOut", overwrite: "auto" },
+    onComplete: () => {
+      applyPoseTarget(root, finalTarget, 0);
+      onSettled();
+    }
+  });
   const waypoints = direction === "forward"
     ? plan.waypoints
     : [...plan.waypoints].reverse();
@@ -185,6 +212,24 @@ function playLegacyWaypointPlan(
   });
 
   return timeline;
+}
+
+function settleAfterPoseTween(
+  root: HTMLElement,
+  target: StageTarget,
+  duration: number,
+  onSettled: () => void
+): ActivePlayback {
+  if (duration === 0) {
+    applyPoseTarget(root, target, 0);
+    onSettled();
+    return { kill: () => undefined };
+  }
+
+  return gsap.delayedCall(duration + 0.02, () => {
+    applyPoseTarget(root, target, 0);
+    onSettled();
+  });
 }
 
 function addPoseTargetToTimeline(

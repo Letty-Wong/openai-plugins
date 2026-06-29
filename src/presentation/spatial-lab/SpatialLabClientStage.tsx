@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { beatById } from "@/content/beats";
 import { sceneById } from "@/content/scenes";
 import {
@@ -65,6 +65,16 @@ export function PresentationStageClientV4({
     () => resolveStageTarget(state.currentBeatId, { reducedMotion: state.reducedMotion }),
     [state.currentBeatId, state.reducedMotion]
   );
+  const renderPreviousTargetRef = useRef<StageTarget | null>(target);
+  const pendingRenderLockTarget = shouldLockVisibleTarget(
+    renderPreviousTargetRef.current,
+    target,
+    state.reducedMotion
+  )
+    ? renderPreviousTargetRef.current
+    : null;
+  const [lockedVisibleTarget, setLockedVisibleTarget] = useState<StageTarget | null>(null);
+  const visibleTarget = lockedVisibleTarget ?? pendingRenderLockTarget ?? target;
   const initialTargetRef = useRef(target);
   const wheelCueRef = useRef({
     deltaY: 0,
@@ -76,6 +86,22 @@ export function PresentationStageClientV4({
   useEffect(() => {
     modeRef.current = mode;
   }, [mode]);
+
+  useLayoutEffect(() => {
+    if (pendingRenderLockTarget) {
+      setLockedVisibleTarget(pendingRenderLockTarget);
+    } else {
+      setLockedVisibleTarget(null);
+    }
+
+    renderPreviousTargetRef.current = target;
+  }, [pendingRenderLockTarget, target]);
+
+  const handleTransitionSettled = useCallback((beatId: BeatId) => {
+    if (beatId === target.beatId) {
+      setLockedVisibleTarget(null);
+    }
+  }, [target.beatId]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -149,7 +175,8 @@ export function PresentationStageClientV4({
       data-customer-visual="preview"
       data-lab-mode={mode}
       data-spatial-lab-version="V4"
-      data-world-motion-state={target.world.motionState}
+      data-transition-locked={String(Boolean(lockedVisibleTarget ?? pendingRenderLockTarget))}
+      data-world-motion-state={visibleTarget.world.motionState}
     >
       <header className="spatial-lab-header">
         <p>Spatial Lab V4 / Gate A + Gate B greybox</p>
@@ -161,8 +188,9 @@ export function PresentationStageClientV4({
         className="spatial-lab-viewport"
         data-beat-movement-kind={target.movementKind}
         data-current-beat-id={target.beatId}
-        data-world-lighting-mode={target.world.lightingMode}
-        data-world-motion-state={target.world.motionState}
+        data-visible-world-tone={visibleTarget.world.tone}
+        data-world-lighting-mode={visibleTarget.world.lightingMode}
+        data-world-motion-state={visibleTarget.world.motionState}
         data-world-tone={target.world.tone}
         data-owner="ScreenViewport"
         data-route-phase={target.routePhase}
@@ -173,17 +201,17 @@ export function PresentationStageClientV4({
       >
         <WorldCamera initialTarget={initialTargetRef.current} target={target}>
           <WorldSpace>
-            <WorldAtmosphere target={target} />
-            <PortalPreviewLayer initialTarget={initialTargetRef.current} target={target} />
-            <PersistentActors initialTarget={initialTargetRef.current} target={target} />
-            <ArtifactSystem initialTarget={initialTargetRef.current} target={target} />
-            <WorldTypography target={target} />
+            <WorldAtmosphere target={visibleTarget} />
+            <PortalPreviewLayer initialTarget={initialTargetRef.current} target={visibleTarget} />
+            <PersistentActors initialTarget={initialTargetRef.current} target={visibleTarget} />
+            <ArtifactSystem initialTarget={initialTargetRef.current} target={visibleTarget} />
+            <WorldTypography target={visibleTarget} runtimeTarget={target} />
           </WorldSpace>
         </WorldCamera>
-        <SceneContextLayer target={target} />
+        <SceneContextLayer target={visibleTarget} />
       </section>
 
-      <ScreenCopyLayer target={target} />
+      <ScreenCopyLayer target={visibleTarget} />
       <TransitionReadout target={target} />
       <LabControls
         currentBeatId={state.currentBeatId}
@@ -196,12 +224,25 @@ export function PresentationStageClientV4({
         reducedMotion={state.reducedMotion}
       />
       <ContractPanel />
-      <PoseTransitionRuntime reducedMotion={state.reducedMotion} target={target} />
+      <PoseTransitionRuntime
+        onTransitionSettled={handleTransitionSettled}
+        reducedMotion={state.reducedMotion}
+        target={target}
+      />
     </main>
   );
 }
 
 export { PresentationStageClientV4 as SpatialLabClientStage };
+
+function shouldLockVisibleTarget(
+  previousTarget: StageTarget | null,
+  target: StageTarget,
+  reducedMotion: boolean
+) {
+  if (reducedMotion || !previousTarget) return false;
+  return previousTarget.beatId === "15.8" && target.beatId === "16.1";
+}
 
 function WorldCamera({
   children,
@@ -783,11 +824,19 @@ function ArtifactShell({ artifact }: { readonly artifact: LabArtifactTarget }) {
   );
 }
 
-function WorldTypography({ target }: { readonly target: StageTarget }) {
+function WorldTypography({
+  runtimeTarget,
+  target
+}: {
+  readonly runtimeTarget: StageTarget;
+  readonly target: StageTarget;
+}) {
   return (
     <div
       className="spatial-lab-world-typography"
       data-owner="WorldTypography"
+      data-runtime-beat-id={runtimeTarget.beatId}
+      data-typography-cue={getTypographyCue(runtimeTarget.beatId)}
       data-world-motion-state={target.world.motionState}
     >
       <span className="world-kicker">{getAudienceKicker(target)}</span>
@@ -795,6 +844,12 @@ function WorldTypography({ target }: { readonly target: StageTarget }) {
       <strong>{target.copy.headline}</strong>
     </div>
   );
+}
+
+function getTypographyCue(beatId: BeatId) {
+  if (beatId === "15.1") return "scene15-enter";
+  if (beatId === "15.8") return "freeze-enter";
+  return "steady";
 }
 
 function ScreenCopyLayer({ target }: { readonly target: StageTarget }) {

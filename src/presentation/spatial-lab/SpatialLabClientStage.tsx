@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from "react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { beatById } from "@/content/beats";
+import { beatById, beats } from "@/content/beats";
 import { sceneById } from "@/content/scenes";
 import {
   createInitialPresentationState,
@@ -229,6 +229,7 @@ export function PresentationStageClientV4({
         reducedMotion={state.reducedMotion}
         target={target}
       />
+      <BeatMarker target={target} />
     </main>
   );
 }
@@ -242,6 +243,17 @@ function shouldLockVisibleTarget(
 ) {
   if (reducedMotion || !previousTarget) return false;
   return previousTarget.beatId === "15.8" && target.beatId === "16.1";
+}
+
+function BeatMarker({ target }: { readonly target: StageTarget }) {
+  const order = beatById.get(target.beatId)?.order ?? 0;
+
+  return (
+    <aside className="spatial-lab-beat-marker" data-owner="TemporaryBeatMarker">
+      <span>Beat {target.beatId}</span>
+      <strong>{order}/{beats.length}</strong>
+    </aside>
+  );
 }
 
 function WorldCamera({

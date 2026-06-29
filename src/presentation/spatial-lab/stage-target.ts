@@ -1005,6 +1005,7 @@ function artifactPoseForEquality(artifact: LabArtifactTarget) {
 function getExplicitStageTarget(beatId: BeatId, sceneNumber: number): ProofTarget | undefined {
   return getFixA4ProofTarget(beatId)
     ?? getLedgerContinuityTarget(beatId, sceneNumber)
+    ?? getCapabilityAccumulationTarget(beatId, sceneNumber)
     ?? getFt01ProductJourneyTarget(beatId, sceneNumber)
     ?? getFt02SafetyPortalTarget(beatId)
     ?? getFt03SafetyActionTarget(beatId, sceneNumber)
@@ -1369,6 +1370,80 @@ function getFt03SafetyActionTarget(beatId: BeatId, sceneNumber: number): ProofTa
 
 function createSafetyBoundaryTarget(beatId: BeatId, sceneNumber: number): ProofTarget {
   const isDataToolScene = sceneNumber === 17;
+  const isSafetyEntryScene = sceneNumber === 16;
+
+  if (isSafetyEntryScene) {
+    return {
+      actorPatches: {
+        "actor.integration-ring": {
+          cameraPresence: "support",
+          rotateX: -2,
+          rotateY: 0,
+          scale: 0.94,
+          x: -18,
+          y: -2,
+          z: 164
+        },
+        "actor.product-stage": {
+          cameraPresence: "support",
+          rotateY: -12,
+          scale: 0.86,
+          x: -218,
+          y: 62,
+          z: -64
+        },
+        "actor.safety-boundary": {
+          cameraPresence: "featured",
+          scale: 1,
+          x: 112,
+          y: -4,
+          z: 190
+        },
+        "actor.source-packet": {
+          cameraPresence: "latent",
+          scale: 0.82,
+          x: -248,
+          y: -88,
+          z: 108
+        }
+      },
+      artifactPatches: createLatentArtifactPatches("review"),
+      camera: {
+        depthBand: "near",
+        focusActorId: "actor.integration-ring",
+        perspective: 1280,
+        poseId: "camera.ft03.safety-entry-hold",
+        rotationX: 0,
+        rotationY: -1,
+        rotationZ: 0,
+        scale: 1,
+        x: -24,
+        y: -10,
+        z: 178
+      },
+      portal: createPortalTarget({
+        edgeProgress: 1,
+        oldWorldOpacity: 0,
+        opacity: 0.34,
+        radius: 220,
+        safetyOpacity: 1,
+        scale: 0.92,
+        visible: true,
+        x: 96,
+        y: -4,
+        z: 160
+      }),
+      ringGeometry: {
+        gap: 18,
+        glow: 0.54,
+        portalRadius: 184,
+        role: "safety-boundary",
+        segmentProgress: [1, 0.88, 0.68, 0.56, 0.42],
+        thickness: 8
+      },
+      world: { lightingMode: "safety", motionState: "settled", tone: "dark" }
+    };
+  }
 
   return {
     actorPatches: {
@@ -1472,11 +1547,11 @@ function createReviewConfirmTarget(beatId: BeatId): ProofTarget {
         z: 212
       },
       "actor.action-confirm-gate": {
-        cameraPresence: isConfirmBeat ? "featured" : "latent",
-        scale: isConfirmBeat ? 1 : 0.86,
-        x: isConfirmBeat ? 150 : 198,
-        y: isConfirmBeat ? 28 : 72,
-        z: isConfirmBeat ? 220 : 100
+        cameraPresence: isConfirmBeat ? "featured" : "support",
+        scale: isConfirmBeat ? 1 : 0.78,
+        x: isConfirmBeat ? 150 : 190,
+        y: isConfirmBeat ? 28 : 70,
+        z: isConfirmBeat ? 220 : 118
       }
     },
     artifactPatches: createVisibleArtifactPatches("review", [
@@ -1741,6 +1816,16 @@ function getFt04FinaleTarget(beatId: BeatId): ProofTarget | undefined {
 }
 
 function attachSpatialTransitionPlan(target: StageTarget, reducedMotion: boolean): StageTarget {
+  if (target.beatId === "08.1") {
+    const repetitionCompression = resolveStageTarget("07.8", { reducedMotion });
+    const plan = createRcFix02rLedgerToCapabilityPlan(repetitionCompression, target);
+
+    return {
+      ...target,
+      transitionPlan: plan
+    };
+  }
+
   if (target.beatId === "09.1") {
     const capabilityCore = resolveStageTarget("08.7", { reducedMotion });
     const plan = createFt01ProductTurnPlan(capabilityCore, target);
@@ -1761,6 +1846,16 @@ function attachSpatialTransitionPlan(target: StageTarget, reducedMotion: boolean
     };
   }
 
+  if (target.beatId === "18.1") {
+    const dataToolBoundary = resolveStageTarget("17.9", { reducedMotion });
+    const plan = createRcFix02rReviewHandoffPlan(dataToolBoundary, target);
+
+    return {
+      ...target,
+      transitionPlan: plan
+    };
+  }
+
   if (target.beatId === "21.1") {
     const actionRoute = resolveStageTarget("20.10", { reducedMotion });
     const plan = createFt04FinalePullbackPlan(actionRoute, target);
@@ -1772,6 +1867,66 @@ function attachSpatialTransitionPlan(target: StageTarget, reducedMotion: boolean
   }
 
   return target;
+}
+
+function createRcFix02rLedgerToCapabilityPlan(from: StageTarget, to: StageTarget): SpatialTransitionPlan {
+  const stateA = spatialState(
+    "state.rcfix02r.A.repetition-compression",
+    "repetition compression",
+    snapshot(from),
+    { id: "actor.ledger-dial", type: "actor" },
+    { compression: 0.72, density: 0.7 }
+  );
+  const stateB = spatialState(
+    "state.rcfix02r.B.capability-accumulation",
+    "capability accumulation",
+    patchSnapshot(from, {
+      actors: {
+        "actor.integration-ring": { cameraPresence: "support", scale: 1.06, x: -116, y: -48, z: 4 },
+        "actor.ledger-dial": { cameraPresence: "featured", rotateZ: 6, scale: 0.82, x: -30, y: 18, z: 98 },
+        "actor.output-cards": { cameraPresence: "support", scale: 0.72, x: 154, y: 106, z: 72 },
+        "actor.source-packet": { cameraPresence: "ambient", scale: 0.62, x: 224, y: -82, z: 48 },
+        "actor.product-stage": { cameraPresence: "offscreen", scale: 0.84, x: 92, y: -72, z: -24 }
+      },
+      artifacts: {
+        "artifact.F01": { cameraPresence: "support", mode: "source", scale: 0.58, x: 112, y: 126, z: 42 },
+        "artifact.F02": { cameraPresence: "support", mode: "source", scale: 0.54, x: 208, y: 128, z: 48 },
+        "artifact.F03": { cameraPresence: "latent", mode: "source", scale: 0.5, x: 250, y: 130, z: 40 }
+      },
+      camera: {
+        depthBand: "mid",
+        focusActorId: "actor.ledger-dial",
+        perspective: 1160,
+        poseId: "camera.rcfix02r.capability-accumulation",
+        rotationX: 5,
+        rotationY: -3,
+        rotationZ: -1,
+        scale: 1.02,
+        x: -42,
+        y: -142,
+        z: 24
+      },
+      portal: createPortalTarget({ oldWorldOpacity: 0 }),
+      world: { lightingMode: "ledger", motionState: "active", tone: "dark" }
+    }),
+    { id: "actor.integration-ring", type: "actor" },
+    { compression: 0.62, density: 0.76 }
+  );
+  const stateC = spatialState(
+    "state.rcfix02r.C.capability-core",
+    "capability core",
+    snapshot(to),
+    { id: "actor.integration-ring", type: "actor" },
+    { compression: 0.56, density: 0.72 }
+  );
+
+  return {
+    fromBeatId: "07.8",
+    id: "transition-plan.rcfix02r.ledger-to-capability",
+    model: "spatial-state",
+    states: [stateA, stateB, stateC],
+    toBeatId: "08.1"
+  };
 }
 
 function createFt01ProductTurnPlan(from: StageTarget, to: StageTarget): SpatialTransitionPlan {
@@ -1827,6 +1982,75 @@ function createFt01ProductTurnPlan(from: StageTarget, to: StageTarget): SpatialT
     model: "spatial-state",
     states: [stateA, stateB, stateC],
     toBeatId: "09.1"
+  };
+}
+
+function createRcFix02rReviewHandoffPlan(from: StageTarget, to: StageTarget): SpatialTransitionPlan {
+  const stateA = spatialState(
+    "state.rcfix02r.A.data-tool-boundary",
+    "data tool boundary",
+    snapshot(from),
+    { id: "actor.safety-boundary", type: "actor" },
+    { compression: 0.44, density: 0.72 }
+  );
+  const stateB = spatialState(
+    "state.rcfix02r.B.review-queue-emergence",
+    "review queue emergence",
+    patchSnapshot(from, {
+      actors: {
+        "actor.safety-boundary": { cameraPresence: "support", scale: 0.92, x: 24, y: -14, z: 112 },
+        "actor.source-packet": { cameraPresence: "ambient", scale: 0.72, x: -238, y: -92, z: 90 },
+        "actor.human-review": { cameraPresence: "support", scale: 0.84, x: -104, y: -28, z: 176 },
+        "actor.action-confirm-gate": { cameraPresence: "support", scale: 0.72, x: 188, y: 72, z: 106 }
+      },
+      artifacts: {
+        "artifact.F01": { cameraPresence: "support", mode: "review", scale: 0.76, x: -252, y: 144, z: 88 },
+        "artifact.F02": { cameraPresence: "support", mode: "review", scale: 0.72, x: -74, y: 176, z: 106 }
+      },
+      camera: {
+        depthBand: "near",
+        focusActorId: "actor.human-review",
+        perspective: 1260,
+        poseId: "camera.rcfix02r.review-queue-emergence",
+        rotationX: 1,
+        rotationY: -2,
+        rotationZ: 0,
+        scale: 1.02,
+        x: -30,
+        y: -26,
+        z: 146
+      },
+      portal: createPortalTarget({
+        edgeProgress: 1,
+        oldWorldOpacity: 0,
+        opacity: 0.12,
+        radius: 220,
+        safetyOpacity: 0.84,
+        scale: 0.86,
+        visible: true,
+        x: 8,
+        y: -10,
+        z: 104
+      }),
+      world: { lightingMode: "safety", motionState: "settled", tone: "dark" }
+    }),
+    { id: "actor.human-review", type: "actor" },
+    { compression: 0.38, density: 0.68 }
+  );
+  const stateC = spatialState(
+    "state.rcfix02r.C.human-review",
+    "human review",
+    snapshot(to),
+    { id: "actor.human-review", type: "actor" },
+    { compression: 0.34, density: 0.62 }
+  );
+
+  return {
+    fromBeatId: "17.9",
+    id: "transition-plan.rcfix02r.review-handoff",
+    model: "spatial-state",
+    states: [stateA, stateB, stateC],
+    toBeatId: "18.1"
   };
 }
 
@@ -2219,6 +2443,82 @@ function getLedgerContinuityTarget(beatId: BeatId, sceneNumber: number): ProofTa
       role: isOpenSource ? "open-source-expansion" : isCompression ? "repetition-compression" : "ledger-overview",
       segmentProgress: isOpenSource ? [1, 0.92, 0.78, 0.7, 0.62] : isCompression ? [0.88, 0.82, 0.76, 0.62, 0.52] : [0.9, 0.82, 0.74, 0.66, 0.56],
       thickness: isOpenSource ? 10 : isCompression ? 9 : 11
+    },
+    world: { lightingMode: "ledger", motionState: "active", tone: "dark" }
+  };
+}
+
+function getCapabilityAccumulationTarget(beatId: BeatId, sceneNumber: number): ProofTarget | undefined {
+  if (sceneNumber !== 8 || beatId === "08.7") return undefined;
+
+  const isLateCapabilityBeat = isAtOrAfter(beatId, "08.5");
+
+  return {
+    actorPatches: {
+      "actor.integration-ring": {
+        cameraPresence: "support",
+        rotateX: 8,
+        rotateY: -3,
+        scale: isLateCapabilityBeat ? 1.08 : 1.04,
+        x: -116,
+        y: -48,
+        z: isLateCapabilityBeat ? 8 : 0
+      },
+      "actor.ledger-dial": {
+        cameraPresence: "featured",
+        rotateZ: isLateCapabilityBeat ? 8 : 5,
+        scale: isLateCapabilityBeat ? 0.78 : 0.86,
+        x: -30,
+        y: 18,
+        z: 98
+      },
+      "actor.output-cards": {
+        cameraPresence: "support",
+        scale: isLateCapabilityBeat ? 0.7 : 0.74,
+        x: 154,
+        y: 106,
+        z: 72
+      },
+      "actor.source-packet": {
+        cameraPresence: "ambient",
+        scale: 0.62,
+        x: 224,
+        y: -82,
+        z: 48
+      },
+      "actor.product-stage": {
+        cameraPresence: "offscreen",
+        scale: 0.84,
+        x: 92,
+        y: -72,
+        z: -24
+      }
+    },
+    artifactPatches: createVisibleArtifactPatches("source", [
+      { scale: 0.58, x: 112, y: 126, z: 42 },
+      { scale: 0.54, x: 208, y: 128, z: 48 }
+    ]),
+    camera: {
+      depthBand: "mid",
+      focusActorId: "actor.ledger-dial",
+      perspective: 1160,
+      poseId: `camera.rcfix02r.${isLateCapabilityBeat ? "capability-core-prep" : "capability-accumulation"}`,
+      rotationX: 5,
+      rotationY: -3,
+      rotationZ: -1,
+      scale: 1.02,
+      x: -42,
+      y: -142,
+      z: 24
+    },
+    portal: createPortalTarget({ oldWorldOpacity: 0 }),
+    ringGeometry: {
+      gap: isLateCapabilityBeat ? 12 : 16,
+      glow: isLateCapabilityBeat ? 0.44 : 0.38,
+      portalRadius: isLateCapabilityBeat ? 136 : 124,
+      role: isLateCapabilityBeat ? "capability-core-prep" : "capability-accumulation",
+      segmentProgress: isLateCapabilityBeat ? [0.94, 0.86, 0.78, 0.7, 0.62] : [0.88, 0.8, 0.72, 0.64, 0.56],
+      thickness: isLateCapabilityBeat ? 10 : 9
     },
     world: { lightingMode: "ledger", motionState: "active", tone: "dark" }
   };

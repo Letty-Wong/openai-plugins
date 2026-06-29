@@ -635,6 +635,7 @@
 .spatial-lab-judgement-stack,
 .spatial-lab-judgement-geometry,
 .spatial-lab-trend-geometry,
+.spatial-lab-gap-geometry,
 .spatial-lab-ledger-geometry {
   height: 100%;
   position: relative;
@@ -646,7 +647,8 @@
 }
 
 .spatial-lab-judgement-stack .spatial-lab-judgement-geometry,
-.spatial-lab-judgement-stack .spatial-lab-trend-geometry {
+.spatial-lab-judgement-stack .spatial-lab-trend-geometry,
+.spatial-lab-judgement-stack .spatial-lab-gap-geometry {
   inset: 0;
   position: absolute;
   transition:
@@ -659,7 +661,13 @@
   transform: translateZ(-80px) scale(0.88);
 }
 
-.spatial-lab-judgement-stack:not([data-judgement-variant="trend"]) .spatial-lab-trend-geometry {
+.spatial-lab-judgement-stack[data-judgement-variant="gap"] .spatial-lab-judgement-geometry {
+  opacity: 0.26;
+  transform: translateZ(-56px) scale(0.9);
+}
+
+.spatial-lab-judgement-stack:not([data-judgement-variant="trend"]) .spatial-lab-trend-geometry,
+.spatial-lab-judgement-stack:not([data-judgement-variant="gap"]) .spatial-lab-gap-geometry {
   opacity: 0;
   transform: translateZ(-70px) scale(0.88);
 }
@@ -735,6 +743,49 @@
 
 .spatial-lab-trend-geometry span:nth-child(4) {
   height: 92%;
+}
+
+.spatial-lab-gap-geometry {
+  transform-style: preserve-3d;
+}
+
+.spatial-lab-gap-geometry .gap-path,
+.spatial-lab-gap-geometry .gap-node {
+  position: absolute;
+}
+
+.spatial-lab-gap-geometry .gap-path {
+  background: linear-gradient(90deg, rgba(214, 95, 81, 0.86), rgba(242, 234, 220, 0.28));
+  height: 2px;
+  left: 18%;
+  top: 50%;
+  transform-origin: left center;
+  width: 62%;
+}
+
+.spatial-lab-gap-geometry .path-a {
+  transform: rotate(-28deg) translateZ(22px);
+}
+
+.spatial-lab-gap-geometry .path-b {
+  opacity: 0.56;
+  transform: rotate(28deg) translateZ(-18px);
+}
+
+.spatial-lab-gap-geometry .gap-node {
+  border: 2px solid rgba(214, 95, 81, 0.74);
+  height: 18px;
+  width: 18px;
+}
+
+.spatial-lab-gap-geometry .node-a {
+  right: 16%;
+  top: 28%;
+}
+
+.spatial-lab-gap-geometry .node-b {
+  right: 22%;
+  top: 64%;
 }
 
 .spatial-lab-ledger-geometry {

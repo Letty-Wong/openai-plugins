@@ -223,6 +223,14 @@ function getTransitionPlayback(
 ): { readonly direction: "forward" | "backward"; readonly plan: LabTransitionPlan } | undefined {
   if (!previousTarget) return undefined;
 
+  if (previousTarget.beatId === "07.8" && target.beatId === "08.1" && target.transitionPlan) {
+    return { direction: "forward", plan: target.transitionPlan };
+  }
+
+  if (previousTarget.beatId === "08.1" && target.beatId === "07.8" && previousTarget.transitionPlan) {
+    return { direction: "backward", plan: previousTarget.transitionPlan };
+  }
+
   if (previousTarget.beatId === "08.7" && target.beatId === "09.1" && target.transitionPlan) {
     return { direction: "forward", plan: target.transitionPlan };
   }
@@ -236,6 +244,14 @@ function getTransitionPlayback(
   }
 
   if (previousTarget.beatId === "16.1" && target.beatId === "15.8" && previousTarget.transitionPlan) {
+    return { direction: "backward", plan: previousTarget.transitionPlan };
+  }
+
+  if (previousTarget.beatId === "17.9" && target.beatId === "18.1" && target.transitionPlan) {
+    return { direction: "forward", plan: target.transitionPlan };
+  }
+
+  if (previousTarget.beatId === "18.1" && target.beatId === "17.9" && previousTarget.transitionPlan) {
     return { direction: "backward", plan: previousTarget.transitionPlan };
   }
 

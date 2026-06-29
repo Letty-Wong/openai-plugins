@@ -533,11 +533,7 @@ function ActorDebugLabel({ actor }: { readonly actor: LabActorTarget }) {
 }
 
 function JudgementQuestionGreybox({ beatId }: { readonly beatId: BeatId }) {
-  const variant = beatId.startsWith("03.")
-    ? "trend"
-    : beatId === "04.7"
-      ? "gap"
-      : "judgement";
+  const variant = getEarlyJudgementVisualState(beatId);
 
   return (
     <div
@@ -552,8 +548,15 @@ function JudgementQuestionGreybox({ beatId }: { readonly beatId: BeatId }) {
         <div className="spatial-lab-judgement-branch branch-b" />
       </div>
       <TrendTrackGreybox />
+      <GapConsequenceGreybox />
     </div>
   );
+}
+
+function getEarlyJudgementVisualState(beatId: BeatId) {
+  if (beatId.startsWith("03.")) return "trend";
+  if (beatId.startsWith("04.")) return "gap";
+  return "judgement";
 }
 
 function TrendTrackGreybox() {
@@ -563,6 +566,17 @@ function TrendTrackGreybox() {
       <span />
       <span />
       <span />
+    </div>
+  );
+}
+
+function GapConsequenceGreybox() {
+  return (
+    <div className="spatial-lab-gap-geometry" data-actor-geometry="gap-consequence">
+      <span className="gap-path path-a" />
+      <span className="gap-path path-b" />
+      <span className="gap-node node-a" />
+      <span className="gap-node node-b" />
     </div>
   );
 }

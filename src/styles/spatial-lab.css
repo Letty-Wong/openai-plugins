@@ -456,7 +456,6 @@
 .spatial-lab-root[data-lab-mode="review"] .spatial-lab-viewport[data-route-phase="product"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id="15.8"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
 .spatial-lab-root[data-lab-mode="review"] .spatial-lab-viewport[data-route-phase="safety"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
-.spatial-lab-root[data-lab-mode="review"][data-current-beat-id="20.10"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id="21.1"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"] {
   height: clamp(330px, 34vw, 540px);
   width: clamp(330px, 34vw, 540px);
@@ -468,11 +467,6 @@
 .spatial-lab-root[data-lab-mode="review"] .spatial-lab-viewport[data-route-phase="safety"] .spatial-lab-actor[data-stage-actor-id="actor.product-stage"] {
   height: clamp(300px, 34vw, 560px);
   width: clamp(300px, 32vw, 520px);
-}
-
-.spatial-lab-root[data-lab-mode="review"][data-current-beat-id="20.10"] .spatial-lab-actor[data-stage-actor-id="actor.action-path"] {
-  height: clamp(190px, 19vw, 300px);
-  width: clamp(470px, 48vw, 780px);
 }
 
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id="21.1"] .spatial-lab-actor[data-stage-actor-id="actor.cta-dock"] {
@@ -488,11 +482,6 @@
 .spatial-lab-root[data-lab-mode="review"] .spatial-lab-viewport[data-route-phase="safety"] .spatial-lab-actor[data-stage-actor-id="actor.safety-boundary"] {
   height: clamp(360px, 35vw, 590px);
   width: clamp(560px, 52vw, 860px);
-}
-
-.spatial-lab-root[data-lab-mode="review"][data-current-beat-id="20.10"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
-.spatial-lab-root[data-lab-mode="review"][data-current-beat-id="20.10"] .spatial-lab-actor[data-stage-actor-id="actor.product-stage"] {
-  opacity: calc(var(--lab-actor-opacity, 0) * 0.66);
 }
 
 .spatial-lab-actor[data-actor-role="lead"] {

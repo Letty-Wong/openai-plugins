@@ -167,6 +167,14 @@ test("RC-FIX-02S maps reported audience beat counts to locked action and finale 
   assert.equal(beats[137]?.id, "21.3");
 });
 
+test("RC-FIX-02S keeps 20.9 to 20.10 free of beat-only actor CSS jumps", () => {
+  const cssSource = readFileSync("src/styles/spatial-lab.css", "utf8");
+
+  assert.doesNotMatch(cssSource, /data-current-beat-id="20\.10"[\s\S]{0,180}actor\.integration-ring/);
+  assert.doesNotMatch(cssSource, /data-current-beat-id="20\.10"[\s\S]{0,180}actor\.product-stage/);
+  assert.doesNotMatch(cssSource, /data-current-beat-id="20\.10"[\s\S]{0,180}actor\.action-path/);
+});
+
 test("RC-FIX-02S keeps safety route review sizing across 16.1 to 17.1", () => {
   const cssSource = readFileSync("src/styles/spatial-lab.css", "utf8");
   const safetyEntry = resolveStageTarget("16.6");

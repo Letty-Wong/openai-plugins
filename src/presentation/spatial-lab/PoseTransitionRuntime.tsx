@@ -33,6 +33,7 @@ export function PoseTransitionRuntime({
     readonly root: HTMLElement;
   } | null>(null);
   const activePlaybackRef = useRef<ActivePlayback | null>(null);
+  const isPlaybackActiveRef = useRef(false);
   const previousTargetRef = useRef<StageTarget | null>(null);
 
   useLayoutEffect(() => {
@@ -46,6 +47,7 @@ export function PoseTransitionRuntime({
       activePlaybackRef.current?.kill();
       gsap.killTweensOf(poseNodes);
       activePlaybackRef.current = null;
+      isPlaybackActiveRef.current = false;
       runtimeRef.current = null;
     };
   }, []);
@@ -57,20 +59,28 @@ export function PoseTransitionRuntime({
     const poseNodes = getPoseNodes(root);
     const previousTarget = previousTargetRef.current;
     const playback = getTransitionPlayback(previousTarget, target);
+    const interruptedActivePlayback = isPlaybackActiveRef.current;
 
-    const duration = getDuration(target.movementKind, reducedMotion || target.reducedMotion);
+    const duration = getDuration(target.movementKind, reducedMotion || target.reducedMotion, interruptedActivePlayback);
     activePlaybackRef.current?.kill();
     gsap.killTweensOf(poseNodes);
+    isPlaybackActiveRef.current = false;
 
     if (playback && !(reducedMotion || target.reducedMotion)) {
       activePlaybackRef.current = playTransitionPlayback(root, playback.plan, playback.direction, target, () => {
+        isPlaybackActiveRef.current = false;
+        activePlaybackRef.current = null;
         onTransitionSettled?.(target.beatId);
       });
+      isPlaybackActiveRef.current = true;
     } else {
       applyPoseTarget(root, target, playback ? 0.22 : duration);
       activePlaybackRef.current = settleAfterPoseTween(root, target, playback ? 0.22 : duration, () => {
+        isPlaybackActiveRef.current = false;
+        activePlaybackRef.current = null;
         onTransitionSettled?.(target.beatId);
       });
+      isPlaybackActiveRef.current = (playback ? 0.22 : duration) > 0;
     }
 
     previousTargetRef.current = target;
@@ -329,9 +339,13 @@ function tweenOrSet(
   });
 }
 
-function getDuration(movementKind: StageTarget["movementKind"], reducedMotion: boolean) {
+function getDuration(
+  movementKind: StageTarget["movementKind"],
+  reducedMotion: boolean,
+  interruptedActivePlayback = false
+) {
   if (reducedMotion) return 0;
-  if (movementKind === "stable") return 0;
+  if (movementKind === "stable") return interruptedActivePlayback ? 0.24 : 0;
   if (movementKind === "spatial") return 0.82;
   if (movementKind === "actor") return 0.46;
   return 0;

@@ -28,10 +28,22 @@ test("RC-FIX-02S settles every tween or transition to the final absolute StageTa
   const runtimeSource = readFileSync("src/presentation/spatial-lab/PoseTransitionRuntime.tsx", "utf8");
 
   assert.match(runtimeSource, /function settleAfterPoseTween/);
+  assert.match(runtimeSource, /const interruptedActivePlayback = isPlaybackActiveRef\.current/);
   assert.match(runtimeSource, /applyPoseTarget\(root, finalTarget, 0\)/);
   assert.match(runtimeSource, /applyPoseTarget\(root, target, 0\)/);
   assert.match(runtimeSource, /onTransitionSettled\?\.\(target\.beatId\)/);
   assert.doesNotMatch(runtimeSource, /eventCallback\("onComplete"/);
+});
+
+test("RC-FIX-02S avoids snap flashes when a stable Beat interrupts active playback", () => {
+  const runtimeSource = readFileSync("src/presentation/spatial-lab/PoseTransitionRuntime.tsx", "utf8");
+
+  assert.match(runtimeSource, /movementKind === "stable"\) return interruptedActivePlayback \? 0\.24 : 0/);
+  assert.match(runtimeSource, /isPlaybackActiveRef\.current = \(playback \? 0\.22 : duration\) > 0/);
+  assert.match(runtimeSource, /isPlaybackActiveRef\.current = false/);
+  assert.equal(nextBeatId("02.1"), "02.2");
+  assert.equal(nextBeatId("03.2"), "03.3");
+  assert.equal(nextBeatId("16.1"), "16.2");
 });
 
 test("RC-FIX-02S locks visible stage data during 15.8 to 16.1 transition playback", () => {

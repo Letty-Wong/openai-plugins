@@ -157,13 +157,18 @@ test("RC-FIX-02S keeps reported flash pairs on identical endpoint poses", () => 
   });
 });
 
-test("RC-FIX-02S keeps Scene 16 review sizing across 16.1 to 16.2", () => {
+test("RC-FIX-02S keeps safety route review sizing across 16.1 to 17.1", () => {
   const cssSource = readFileSync("src/styles/spatial-lab.css", "utf8");
+  const safetyEntry = resolveStageTarget("16.6");
+  const safetyRoute = resolveStageTarget("17.1");
 
-  assert.match(cssSource, /data-current-beat-id\^="16\."\][\s\S]*actor\.integration-ring/);
-  assert.match(cssSource, /data-current-beat-id\^="16\."\][\s\S]*actor\.product-stage/);
-  assert.match(cssSource, /data-current-beat-id\^="16\."\][\s\S]*actor\.safety-boundary/);
-  assert.match(cssSource, /data-current-beat-id\^="16\."\] \.spatial-lab-world-atmosphere/);
+  assert.equal(nextBeatId("16.6"), "17.1");
+  assert.equal(safetyEntry.routePhase, "safety");
+  assert.equal(safetyRoute.routePhase, "safety");
+  assert.match(cssSource, /data-route-phase="safety"[\s\S]*actor\.integration-ring/);
+  assert.match(cssSource, /data-route-phase="safety"[\s\S]*actor\.product-stage/);
+  assert.match(cssSource, /data-route-phase="safety"[\s\S]*actor\.safety-boundary/);
+  assert.match(cssSource, /data-route-phase="safety"\] \.spatial-lab-world-atmosphere/);
   assert.doesNotMatch(cssSource, /data-current-beat-id="16\.1"\][\s\S]{0,140}actor\.safety-boundary/);
 });
 

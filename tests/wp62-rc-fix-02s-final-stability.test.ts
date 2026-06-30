@@ -24,6 +24,46 @@ function targetSnapshot(target: ReturnType<typeof resolveStageTarget>) {
   };
 }
 
+function poseSnapshot(target: ReturnType<typeof resolveStageTarget>) {
+  return {
+    actors: Object.fromEntries(
+      Object.entries(target.actors).map(([actorId, actor]) => [
+        actorId,
+        {
+          cameraPresence: actor.cameraPresence,
+          opacity: actor.opacity,
+          rotateX: actor.rotateX,
+          rotateY: actor.rotateY,
+          rotateZ: actor.rotateZ,
+          scale: actor.scale,
+          visible: actor.visible,
+          x: actor.x,
+          y: actor.y,
+          z: actor.z
+        }
+      ])
+    ),
+    artifacts: Object.fromEntries(
+      Object.entries(target.artifacts).map(([artifactId, artifact]) => [
+        artifactId,
+        {
+          cameraPresence: artifact.cameraPresence,
+          mode: artifact.mode,
+          opacity: artifact.opacity,
+          scale: artifact.scale,
+          visible: artifact.visible,
+          x: artifact.x,
+          y: artifact.y,
+          z: artifact.z
+        }
+      ])
+    ),
+    camera: target.camera,
+    portal: target.portal,
+    world: target.world
+  };
+}
+
 test("RC-FIX-02S settles every tween or transition to the final absolute StageTarget", () => {
   const runtimeSource = readFileSync("src/presentation/spatial-lab/PoseTransitionRuntime.tsx", "utf8");
 
@@ -98,4 +138,21 @@ test("RC-FIX-02S keeps 02.1 to 03.1 to next on the persistent early shell", () =
   assert.match(labSource, /data-actor-geometry="judgement-question"/);
   assert.match(labSource, /<TrendTrackGreybox \/>/);
   assert.match(labSource, /<GapConsequenceGreybox \/>/);
+});
+
+test("RC-FIX-02S keeps reported flash pairs on identical endpoint poses", () => {
+  const stablePairs = [
+    ["02.1", "02.2"],
+    ["03.2", "03.3"],
+    ["16.1", "16.2"]
+  ] as const;
+
+  stablePairs.forEach(([previousBeatId, nextBeatIdValue]) => {
+    const previous = resolveStageTarget(previousBeatId);
+    const next = resolveStageTarget(nextBeatIdValue);
+
+    assert.equal(nextBeatId(previousBeatId), nextBeatIdValue);
+    assert.equal(next.movementKind, "stable");
+    assert.deepEqual(poseSnapshot(next), poseSnapshot(previous));
+  });
 });

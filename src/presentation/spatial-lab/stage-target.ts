@@ -310,6 +310,7 @@ const actorBeatIds = [
 
 const spatialBeatIdSet = new Set<BeatId>(spatialBeatIds);
 const actorBeatIdSet = new Set<BeatId>(actorBeatIds);
+const beatOrderIndex = new Map(beats.map((beat, index) => [beat.id, index]));
 
 const movementKindByBeatId: Readonly<Record<BeatId, BeatMovementKind>> = Object.fromEntries(
   beats.map((beat) => [
@@ -1004,12 +1005,25 @@ function artifactPoseForEquality(artifact: LabArtifactTarget) {
 
 function getExplicitStageTarget(beatId: BeatId, sceneNumber: number): ProofTarget | undefined {
   return getFixA4ProofTarget(beatId)
+    ?? getEarlyJudgementContinuityTarget(sceneNumber)
     ?? getLedgerContinuityTarget(beatId, sceneNumber)
     ?? getCapabilityAccumulationTarget(beatId, sceneNumber)
     ?? getFt01ProductJourneyTarget(beatId, sceneNumber)
     ?? getFt02SafetyPortalTarget(beatId)
     ?? getFt03SafetyActionTarget(beatId, sceneNumber)
     ?? getFt04FinaleTarget(beatId);
+}
+
+function isBeatBetween(beatId: BeatId, startBeatId: BeatId, endBeatId: BeatId) {
+  const beatIndex = beatOrderIndex.get(beatId);
+  const startIndex = beatOrderIndex.get(startBeatId);
+  const endIndex = beatOrderIndex.get(endBeatId);
+
+  return beatIndex !== undefined
+    && startIndex !== undefined
+    && endIndex !== undefined
+    && beatIndex >= startIndex
+    && beatIndex <= endIndex;
 }
 
 type Ft01StationConfig = {
@@ -1239,7 +1253,7 @@ function createFt01ArtifactPatches(
 }
 
 function getFt02SafetyPortalTarget(beatId: BeatId): ProofTarget | undefined {
-  if (beatId !== "16.1") return undefined;
+  if (!isBeatBetween(beatId, "16.1", "16.6")) return undefined;
 
   return {
     actorPatches: {
@@ -2368,6 +2382,12 @@ function patchArtifacts(
 function getFixA4ProofTarget(beatId: BeatId): ProofTarget | undefined {
   if (!fixA4ProofBeatIdSet.has(beatId)) return undefined;
   return fixA4ProofTargets[beatId as (typeof fixA4ProofBeatIds)[number]];
+}
+
+function getEarlyJudgementContinuityTarget(sceneNumber: number): ProofTarget | undefined {
+  if (sceneNumber === 2) return fixA4ProofTargets["02.1"];
+  if (sceneNumber === 3) return fixA4ProofTargets["03.1"];
+  return undefined;
 }
 
 function getLedgerContinuityTarget(beatId: BeatId, sceneNumber: number): ProofTarget | undefined {

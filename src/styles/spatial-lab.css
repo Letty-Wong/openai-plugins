@@ -1716,7 +1716,7 @@
 .spatial-lab-world-typography[data-world-motion-state="frozen"] {
   bottom: auto;
   left: 50%;
-  max-width: 760px;
+  max-width: min(1000px, calc(100vw - 96px));
   text-align: center;
   top: 27%;
   transform: translate3d(-50%, -50%, 320px);
@@ -1724,8 +1724,9 @@
 
 .spatial-lab-world-typography[data-world-motion-state="frozen"] strong {
   color: var(--v4-ink);
-  font-size: clamp(58px, 9vw, 148px);
+  font-size: clamp(58px, 8vw, 132px);
   line-height: 0.88;
+  white-space: nowrap;
 }
 
 .spatial-lab-world-typography[data-world-motion-state="frozen"] .world-kicker {

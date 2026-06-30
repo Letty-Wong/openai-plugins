@@ -86,7 +86,13 @@ Results:
 
 ## Capture Status
 
-Screenshot and recording capture is pending a Codex app restart so the newly granted screen-recording permission can take effect in the current execution process.
+Screenshot and recording capture completed after restarting Codex so the screen-capture permission could take effect.
+
+Captured evidence:
+
+- 10 static screenshots: five key Beats at `1366 x 768` and `1920 x 1080`
+- 6 standard recordings: three key transitions at `1366 x 768` and `1920 x 1080`
+- 1 reduced-motion recording: `15.8 -> 16.1` at `1366 x 768`
 
 ## Human Review
 

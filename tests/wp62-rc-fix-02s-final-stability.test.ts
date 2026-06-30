@@ -166,3 +166,16 @@ test("RC-FIX-02S keeps Scene 16 review sizing across 16.1 to 16.2", () => {
   assert.match(cssSource, /data-current-beat-id\^="16\."\] \.spatial-lab-world-atmosphere/);
   assert.doesNotMatch(cssSource, /data-current-beat-id="16\.1"\][\s\S]{0,140}actor\.safety-boundary/);
 });
+
+test("RC-FIX-02S keeps product route review sizing across 08.7 to 09.1", () => {
+  const cssSource = readFileSync("src/styles/spatial-lab.css", "utf8");
+  const capabilityCore = resolveStageTarget("08.7");
+  const productStation = resolveStageTarget("09.1");
+
+  assert.equal(productStation.transitionPlan?.fromBeatId, "08.7");
+  assert.equal(productStation.transitionPlan?.toBeatId, "09.1");
+  assert.equal(capabilityCore.actors["actor.product-stage"].visible, true);
+  assert.equal(productStation.actors["actor.product-stage"].visible, true);
+  assert.match(cssSource, /data-route-phase="product"[\s\S]*actor\.integration-ring/);
+  assert.match(cssSource, /data-route-phase="product"[\s\S]*actor\.product-stage/);
+});

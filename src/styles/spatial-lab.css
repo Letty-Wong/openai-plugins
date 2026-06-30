@@ -424,6 +424,7 @@
 }
 
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id="08.7"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
+.spatial-lab-root[data-lab-mode="review"] .spatial-lab-viewport[data-route-phase="product"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id="15.8"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id^="16."] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id="20.10"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
@@ -433,6 +434,7 @@
 }
 
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id="08.7"] .spatial-lab-actor[data-stage-actor-id="actor.product-stage"],
+.spatial-lab-root[data-lab-mode="review"] .spatial-lab-viewport[data-route-phase="product"] .spatial-lab-actor[data-stage-actor-id="actor.product-stage"],
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id="15.8"] .spatial-lab-actor[data-stage-actor-id="actor.product-stage"],
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id^="16."] .spatial-lab-actor[data-stage-actor-id="actor.product-stage"] {
   height: clamp(300px, 34vw, 560px);

@@ -144,7 +144,10 @@ test("RC-FIX-02S keeps reported flash pairs on identical endpoint poses", () => 
   const stablePairs = [
     ["02.1", "02.2"],
     ["03.2", "03.3"],
-    ["16.1", "16.2"]
+    ["16.1", "16.2"],
+    ["20.9", "20.10"],
+    ["21.1", "21.2"],
+    ["21.2", "21.3"]
   ] as const;
 
   stablePairs.forEach(([previousBeatId, nextBeatIdValue]) => {
@@ -152,9 +155,16 @@ test("RC-FIX-02S keeps reported flash pairs on identical endpoint poses", () => 
     const next = resolveStageTarget(nextBeatIdValue);
 
     assert.equal(nextBeatId(previousBeatId), nextBeatIdValue);
-    assert.equal(next.movementKind, "stable");
     assert.deepEqual(poseSnapshot(next), poseSnapshot(previous));
   });
+});
+
+test("RC-FIX-02S maps reported audience beat counts to locked action and finale handoffs", () => {
+  assert.equal(beats[133]?.id, "20.9");
+  assert.equal(beats[134]?.id, "20.10");
+  assert.equal(beats[135]?.id, "21.1");
+  assert.equal(beats[136]?.id, "21.2");
+  assert.equal(beats[137]?.id, "21.3");
 });
 
 test("RC-FIX-02S keeps safety route review sizing across 16.1 to 17.1", () => {

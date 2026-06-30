@@ -1690,10 +1690,10 @@ function createActionRouteTarget(beatId: BeatId): ProofTarget {
       "actor.integration-ring": {
         cameraPresence: "support",
         rotateX: 6,
-        scale: isFinalActionBeat ? 1.12 : 1.02,
-        x: isFinalActionBeat ? -144 : -204,
-        y: isFinalActionBeat ? -54 : -82,
-        z: isFinalActionBeat ? -36 : -20
+        scale: 1.02,
+        x: -204,
+        y: -82,
+        z: -20
       },
       "actor.product-stage": {
         cameraPresence: "support",
@@ -1704,14 +1704,14 @@ function createActionRouteTarget(beatId: BeatId): ProofTarget {
         z: -128
       },
       "actor.safety-boundary": {
-        cameraPresence: isFinalActionBeat ? "ambient" : "latent",
+        cameraPresence: "latent",
         scale: 0.72,
         x: 214,
         y: -34,
         z: -10
       },
       "actor.scenario-radar": {
-        cameraPresence: isFinalActionBeat ? "latent" : "ambient",
+        cameraPresence: "ambient",
         scale: 0.78,
         x: -268,
         y: 136,
@@ -1719,10 +1719,10 @@ function createActionRouteTarget(beatId: BeatId): ProofTarget {
       },
       "actor.action-path": {
         cameraPresence: "featured",
-        scale: isFinalActionBeat ? 1.03 : 1,
-        x: isFinalActionBeat ? 82 : 8,
-        y: isFinalActionBeat ? 68 : 120,
-        z: isFinalActionBeat ? 210 : 160
+        scale: 1,
+        x: 8,
+        y: 120,
+        z: 160
       }
     },
     artifactPatches: createVisibleArtifactPatches("route", [
@@ -1733,14 +1733,14 @@ function createActionRouteTarget(beatId: BeatId): ProofTarget {
       depthBand: "mid",
       focusActorId: "actor.action-path",
       perspective: 1250,
-      poseId: `camera.ft03.${isFinalActionBeat ? "action-route-complete" : "action-route"}`,
+      poseId: "camera.ft03.action-route",
       rotationX: 4,
       rotationY: 3,
       rotationZ: 0,
-      scale: isFinalActionBeat ? 0.98 : 1.02,
-      x: isFinalActionBeat ? -78 : -96,
-      y: isFinalActionBeat ? -92 : -118,
-      z: isFinalActionBeat ? 80 : 96
+      scale: 1.02,
+      x: -96,
+      y: -118,
+      z: 96
     },
     portal: createPortalTarget({ oldWorldOpacity: 0 }),
     ringGeometry: {
@@ -1756,7 +1756,7 @@ function createActionRouteTarget(beatId: BeatId): ProofTarget {
 }
 
 function getFt04FinaleTarget(beatId: BeatId): ProofTarget | undefined {
-  if (beatId !== "21.1") return undefined;
+  if (beatId !== "21.1" && beatId !== "21.2" && beatId !== "21.3") return undefined;
 
   return {
     actorPatches: {

@@ -425,7 +425,7 @@
 
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id="08.7"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id="15.8"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
-.spatial-lab-root[data-lab-mode="review"][data-current-beat-id="16.1"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
+.spatial-lab-root[data-lab-mode="review"][data-current-beat-id^="16."] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id="20.10"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"],
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id="21.1"] .spatial-lab-actor[data-stage-actor-id="actor.integration-ring"] {
   height: clamp(330px, 34vw, 540px);
@@ -434,7 +434,7 @@
 
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id="08.7"] .spatial-lab-actor[data-stage-actor-id="actor.product-stage"],
 .spatial-lab-root[data-lab-mode="review"][data-current-beat-id="15.8"] .spatial-lab-actor[data-stage-actor-id="actor.product-stage"],
-.spatial-lab-root[data-lab-mode="review"][data-current-beat-id="16.1"] .spatial-lab-actor[data-stage-actor-id="actor.product-stage"] {
+.spatial-lab-root[data-lab-mode="review"][data-current-beat-id^="16."] .spatial-lab-actor[data-stage-actor-id="actor.product-stage"] {
   height: clamp(300px, 34vw, 560px);
   width: clamp(300px, 32vw, 520px);
 }
@@ -454,7 +454,7 @@
   width: clamp(560px, 54vw, 860px);
 }
 
-.spatial-lab-root[data-lab-mode="review"][data-current-beat-id="16.1"] .spatial-lab-actor[data-stage-actor-id="actor.safety-boundary"] {
+.spatial-lab-root[data-lab-mode="review"][data-current-beat-id^="16."] .spatial-lab-actor[data-stage-actor-id="actor.safety-boundary"] {
   height: clamp(360px, 35vw, 590px);
   width: clamp(560px, 52vw, 860px);
 }
@@ -1856,7 +1856,7 @@
     inset 0 1px 0 rgba(255, 250, 239, 0.44);
 }
 
-.spatial-lab-root[data-lab-mode="review"] .spatial-lab-viewport[data-current-beat-id="16.1"] .spatial-lab-world-atmosphere {
+.spatial-lab-root[data-lab-mode="review"] .spatial-lab-viewport[data-current-beat-id^="16."] .spatial-lab-world-atmosphere {
   opacity: calc(var(--lab-old-world-opacity, 1) * 0.35);
 }
 

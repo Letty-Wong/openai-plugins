@@ -27,3 +27,15 @@ test-results/
 
 # system
 .DS_Store
+
+# review artifacts
+review/**/recordings/
+review/**/screenshots/
+review/**/videos/
+review/**/*.mp4
+review/**/*.mov
+review/**/*.webm
+review/**/*.gif
+review/**/*.png
+review/**/*.jpg
+review/**/*.jpeg

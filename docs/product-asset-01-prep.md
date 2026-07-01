@@ -2,24 +2,24 @@
 
 ## Purpose
 
-Prepare the real shower product asset handoff without changing runtime code, motion targets, visual routes, or `/legacy`.
+Prepare the demo shower product asset handoff without changing runtime code, motion targets, visual routes, or `/legacy`.
 
 - Locked code tag: `v4-rc-preview-1`
 - Locked code commit: `8c27c961a1aa059746f484e590ca8362291895c8`
 - Current ProductStage placeholder id: `shower-h1-placeholder`
 
-This document is a contract for the later asset replacement pass. It does not approve real product claims, QR codes, CTA links, pricing, MOQ, certifications, lead times, or warranty details.
+This document is a contract for the later demo asset replacement pass. The product is fictional and exists to demonstrate how product information and simple photos can become posters, video scripts, sales materials, foreign-trade replies, FAQ, and department outputs. It does not approve real product claims, QR codes, CTA links, pricing, MOQ, certifications, lead times, or warranty details.
 
 ## Required Asset Package
 
-Minimum files for a first real-product pass:
+Minimum files for a first demo-product pass:
 
-- Transparent PNG main product image.
-- Product shadow image.
-- Product mask image.
-- Warm-light product version.
-- Neutral technical product version.
-- Dark signal-red product version.
+- Transparent PNG main product image, or a clean simple product photo that can be masked.
+- Product shadow image, optional if the main image already has usable grounding.
+- Product mask image, recommended for clean layering.
+- Warm-light demo product version.
+- Neutral technical demo product version.
+- Dark signal-red demo product version.
 - Anchor data for product parts.
 
 Preferred lighting variants:
@@ -56,7 +56,7 @@ All anchors must use normalized coordinates in the final registered product canv
 }
 ```
 
-These values are examples only. Final values must be measured from the approved assets.
+These values are examples only. Final values must be measured from the approved demo assets.
 
 ## File Naming And Placement
 
@@ -88,7 +88,7 @@ data/asset-manifest.json
 
 Every bitmap must have explicit width, height, source status, and approval status in `asset-manifest.json`.
 
-Do not place final product assets in ad hoc folders, remote URLs, design scratch folders, or review evidence directories.
+Do not place demo product assets in ad hoc folders, remote URLs, design scratch folders, or review evidence directories.
 
 ## Current ProductStage Contract
 
@@ -121,7 +121,7 @@ Allowed in `PRODUCT-ASSET-01` implementation:
 - Add a product asset manifest.
 - Add product anchor data.
 - Add product-only CSS for image layers, masks, and fallback states.
-- Add local bitmap assets after source and approval are confirmed.
+- Add local bitmap assets after the demo source and approval are confirmed.
 
 Forbidden in `PRODUCT-ASSET-01` implementation:
 
@@ -133,17 +133,18 @@ Forbidden in `PRODUCT-ASSET-01` implementation:
 - Change `actor.product-stage` identity.
 - Move product alignment into per-beat CSS hacks.
 - Replace local assets with remote image URLs.
-- Use unapproved screenshots, web images, AI guesses, or fake product renders.
+- Use unapproved screenshots, random web images, or third-party product photos without permission.
+- Present the fictional demo product as a real purchasable product.
 - Invent product parameters, prices, MOQ, certifications, lead times, warranty, CTA links, or QR codes.
 
 ## Fallback Behavior
 
-If approved product assets are missing, incomplete, or not aligned:
+If approved demo product assets are missing, incomplete, or not aligned:
 
 - Keep the current premium placeholder ProductStage.
 - Keep content status as `PLACEHOLDER`.
 - Keep asset-dependent product reveal and safety/finale product swaps blocked.
-- Do not use a random product photo as a temporary substitute.
+- Do not use a random real product photo as a temporary substitute.
 - Do not hide missing assets with full-screen fades or new transition effects.
 
 The fallback must still preserve `ProductStage` as the same DOM actor from `08.7` through Scene 21.
@@ -153,7 +154,7 @@ The fallback must still preserve `ProductStage` as the same DOM actor from `08.7
 - `v4-rc-preview-1` remains a valid rollback point.
 - Product remains one DOM actor: `actor.product-stage`.
 - `ProductStage` keeps the same shell and anchor ids.
-- Real product image layers align to the same registered canvas.
+- Demo product image layers align to the same registered canvas.
 - No Runtime, StageTarget, `/legacy`, or key transition structure changes.
 - `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` pass.
 - 1366 x 768 and 1920 x 1080 screenshots confirm the product does not jump across:

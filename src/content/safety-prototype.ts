@@ -1,4 +1,5 @@
 import type { ContentStatus } from "@/presentation/core/state-types";
+import { productDemoMaterials } from "@/content/product-prototype";
 
 export type BoundaryModuleId = "data" | "tool" | "content" | "permission";
 
@@ -38,21 +39,21 @@ export const boundaryModules: readonly BoundaryModule[] = [
 export const outputCards: readonly OutputCardPrototype[] = [
   {
     id: "output-sales-copy",
-    label: "销售话术初稿",
+    label: "销售话术样板",
     sourceId: "F-01",
     reviewStatus: "APPROVED",
-    contentStatus: "PLACEHOLDER"
+    contentStatus: productDemoMaterials.benefit.status
   },
   {
     id: "output-video-script",
-    label: "视频分镜初稿",
-    sourceId: "F-03",
-    reviewStatus: "DRAFT",
-    contentStatus: "PLACEHOLDER"
+    label: "45 秒视频分镜",
+    sourceId: "F-04",
+    reviewStatus: "APPROVED",
+    contentStatus: productDemoMaterials.storyboard.status
   },
   {
     id: "output-unknown-claim",
-    label: "未确认承诺",
+    label: "未确认商业承诺",
     sourceId: "DEMO-ONLY",
     reviewStatus: "BLOCKED",
     contentStatus: "DO_NOT_USE"

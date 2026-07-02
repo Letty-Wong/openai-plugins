@@ -33,7 +33,9 @@ test("WP-05C keeps content approval separate from execution authorization", () =
   assert.equal(actionConfirmGate.id, "action-confirm-gate");
   assert.equal(actionConfirmGate.executionAuthorized, false);
   assert.equal(outputCards.some((card) => card.reviewStatus === "APPROVED"), true);
+  assert.equal(outputCards.filter((card) => card.contentStatus === "APPROVED").length, 2);
   assert.equal(outputCards.some((card) => card.contentStatus === "DO_NOT_USE"), true);
+  assert.equal(outputCards.some((card) => card.label === "未确认商业承诺" && card.reviewStatus === "BLOCKED"), true);
 });
 
 test("WP-05C keeps boundary modules and scenario candidates data-driven", () => {

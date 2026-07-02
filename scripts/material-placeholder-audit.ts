@@ -3,7 +3,12 @@ import { extname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { ctaConfig } from "../src/content/cta";
-import { productClaims, productFacts, productPrototype } from "../src/content/product-prototype";
+import {
+  productClaims,
+  productDemoMaterials,
+  productFacts,
+  productPrototype
+} from "../src/content/product-prototype";
 import { motionAssetGates } from "../src/presentation/motion/asset-gates";
 
 type AuditCheck = {
@@ -54,14 +59,20 @@ export function getMaterialPlaceholderAuditChecks(): readonly AuditCheck[] {
       title: "Product shell stays placeholder"
     },
     {
-      detail: `${productFacts.length} product facts checked.`,
-      ok: productFacts.every((fact) => fact.status === "PLACEHOLDER"),
-      title: "Product facts stay placeholder"
+      detail: `${productFacts.length} lecture-derived demo facts checked.`,
+      ok: productFacts.every((fact) => fact.status === "APPROVED"),
+      title: "Fictional demo product facts are approved"
     },
     {
-      detail: `${productClaims.length} product claims checked.`,
-      ok: productClaims.every((claim) => claim.status === "PLACEHOLDER"),
-      title: "Product claims stay placeholder"
+      detail: `${productClaims.length} lecture-derived demo claims checked.`,
+      ok: productClaims.every((claim) => claim.status === "APPROVED"),
+      title: "Fictional demo product claims are approved"
+    },
+    {
+      detail: "MOQ, price, warranty, and lead time stay as confirmation placeholders.",
+      ok: (productDemoMaterials["email-faq"].mailLines ?? []).join(" ").includes("MOQ / 价格：待业务确认")
+        && (productDemoMaterials["email-faq"].mailLines ?? []).join(" ").includes("质保 / 交期：待业务确认"),
+      title: "Commercial fields stay unconfirmed"
     },
     {
       detail: `CTA status is ${ctaConfig.status}.`,
@@ -110,6 +121,7 @@ export function buildMaterialPlaceholderAudit(): string {
     "## Interpretation",
     "",
     "- PASS means the current project still uses placeholders for missing product, CTA, QR, and business assets.",
+    "- PASS allows approved fictional lecture-demo content while keeping real commercial material gates closed.",
     "- PASS does not mean the final material gate is approved.",
     "- Any FAIL should block real visual polish and WP-38 implementation until reviewed.",
     ""

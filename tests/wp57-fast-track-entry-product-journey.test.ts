@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
+import { productDemoMaterials } from "../src/content/product-prototype";
 import {
   labArtifactIds,
   resolveStageTarget
@@ -88,8 +89,7 @@ test("WP-57 FT-01 uses stable artifact ids with product-journey modes", () => {
 test("WP-57 FT-01.1 freezes 15.8 before the forward tunnel takes over", () => {
   const freeze = resolveStageTarget("15.8");
   const tunnel = resolveStageTarget("16.1");
-  const labSource = readFileSync("src/presentation/spatial-lab/SpatialLabClientStage.tsx", "utf8");
-  const departmentSlots = ["市场", "销售", "视频", "外贸", "客服"].filter((label) => labSource.includes(`<span>${label}</span>`));
+  const departmentSlots = productDemoMaterials["department-output"].departmentSlots ?? [];
 
   assert.equal(freeze.copy.headline, "快，还不够。");
   assert.equal(freeze.copy.caption, "生成速度不是企业能力的全部");
@@ -99,5 +99,6 @@ test("WP-57 FT-01.1 freezes 15.8 before the forward tunnel takes over", () => {
   assert.equal(freeze.artifacts["artifact.F01"].mode, "department-output");
   assert.equal(freeze.actors["actor.integration-ring"].geometry.role, "department-output-freeze");
   assert.equal(departmentSlots.length, 5);
+  assert.deepEqual(departmentSlots, ["市场 海报", "销售 话术", "视频 分镜", "外贸 邮件", "客服 FAQ"]);
   assert.equal(tunnel.transition?.acceptanceFocus[0], "FT-02 forward safety portal spatial states are active");
 });

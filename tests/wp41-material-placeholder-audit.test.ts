@@ -12,14 +12,15 @@ test("WP-41 exposes a material placeholder audit command", () => {
   assert.equal(packageJson.scripts?.["audit:materials"], "tsx scripts/material-placeholder-audit.ts");
 });
 
-test("WP-41 confirms current product and CTA data remain placeholders", () => {
+test("WP-41 confirms product media and CTA stay gated while fictional demo content is approved", () => {
   const audit = buildMaterialPlaceholderAudit();
 
   assert.match(audit, /Overall status: `PASS`/);
   assert.match(audit, /Product shell stays placeholder/);
   assert.match(audit, /Current product id is shower-h1-placeholder/);
-  assert.match(audit, /Product facts stay placeholder/);
-  assert.match(audit, /Product claims stay placeholder/);
+  assert.match(audit, /Fictional demo product facts are approved/);
+  assert.match(audit, /Fictional demo product claims are approved/);
+  assert.match(audit, /Commercial fields stay unconfirmed/);
   assert.match(audit, /CTA stays placeholder/);
 });
 

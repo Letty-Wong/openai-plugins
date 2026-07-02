@@ -1581,8 +1581,17 @@
 
 .artifact-fact-rows span,
 .artifact-mail-lines span {
-  background: color-mix(in srgb, var(--lab-surface-border) 68%, var(--v4-signal) 32%);
-  height: 3px;
+  background: rgba(240, 229, 210, 0.055);
+  border: 1px solid rgba(240, 229, 210, 0.08);
+  border-radius: 999px;
+  color: var(--lab-muted);
+  font-size: 9px;
+  line-height: 1.25;
+  min-height: 0;
+  overflow: hidden;
+  padding: 3px 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .artifact-hero-block {
@@ -1592,6 +1601,10 @@
   border: 1px solid rgba(217, 79, 66, 0.28);
   border-radius: 12px;
   display: none;
+  color: var(--lab-text);
+  font-size: 11px;
+  line-height: 1.35;
+  padding: 8px;
   min-height: 42px;
 }
 
@@ -1604,7 +1617,11 @@
   background: rgba(240, 229, 210, 0.055);
   border: 1px solid var(--lab-surface-border);
   border-radius: 8px;
+  color: var(--lab-muted);
+  font-size: 9px;
+  line-height: 1.2;
   min-height: 34px;
+  padding: 6px;
 }
 
 .artifact-mail-lines {
@@ -1627,6 +1644,7 @@
   border-radius: 999px;
   color: var(--lab-muted);
   font-size: 10px;
+  line-height: 1.15;
   min-width: 0;
   padding: 5px 3px;
   text-align: center;

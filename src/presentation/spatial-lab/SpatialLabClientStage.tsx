@@ -13,6 +13,7 @@ import {
 } from "@/presentation/core/PresentationController";
 import { reduceKeyboardShortcut } from "@/presentation/core/keyboard";
 import type { BeatId, SceneId } from "@/presentation/core/state-types";
+import { productDemoMaterials } from "@/content/product-prototype";
 import { IntegrationRingGeometry } from "@/presentation/stage/IntegrationRing";
 import { ProductStage } from "@/presentation/stage/ProductStage";
 import { ActionPathGreybox } from "@/presentation/spatial-lab/ActionPathGreybox";
@@ -802,35 +803,33 @@ function ArtifactBlock({
 }
 
 function ArtifactShell({ artifact }: { readonly artifact: LabArtifactTarget }) {
-  const label = getArtifactAudienceLabel(artifact.mode);
+  const material = getArtifactAudienceMaterial(artifact.mode);
 
   return (
     <div className="spatial-lab-artifact-shell">
       <span className="artifact-debug-id">{artifact.artifactId}</span>
-      <span className="artifact-kicker">{label.kicker}</span>
-      <strong>{label.title}</strong>
-      <div className="artifact-fact-rows" aria-hidden="true">
-        <span />
-        <span />
-        <span />
+      <span className="artifact-kicker">{material.kicker}</span>
+      <strong>{material.title}</strong>
+      <div className="artifact-fact-rows">
+        {material.rows.slice(0, 3).map((row) => (
+          <span key={row}>{row}</span>
+        ))}
       </div>
-      <div className="artifact-hero-block" aria-hidden="true" />
-      <div className="artifact-storyboard-cells" aria-hidden="true">
-        <span />
-        <span />
-        <span />
+      <div className="artifact-hero-block">{material.hero}</div>
+      <div className="artifact-storyboard-cells">
+        {(material.storyboard ?? []).map((cell) => (
+          <span key={cell}>{cell}</span>
+        ))}
       </div>
       <div className="artifact-mail-lines" aria-hidden="true">
-        <span />
-        <span />
-        <span />
+        {(material.mailLines ?? []).map((line) => (
+          <span key={line}>{line}</span>
+        ))}
       </div>
-      <div className="artifact-department-slots" aria-hidden="true">
-        <span>市场</span>
-        <span>销售</span>
-        <span>视频</span>
-        <span>外贸</span>
-        <span>客服</span>
+      <div className="artifact-department-slots">
+        {(material.departmentSlots ?? ["市场", "销售", "视频", "外贸", "客服"]).map((slot) => (
+          <span key={slot}>{slot}</span>
+        ))}
       </div>
     </div>
   );
@@ -1053,14 +1052,7 @@ function getAudienceKicker(target: StageTarget) {
   return "判断入口";
 }
 
-function getArtifactAudienceLabel(mode: LabArtifactTarget["mode"]) {
-  if (mode === "source") return { kicker: "资料", title: "产品信息" };
-  if (mode === "benefit") return { kicker: "转译", title: "客户利益" };
-  if (mode === "poster") return { kicker: "销售", title: "海报版式" };
-  if (mode === "storyboard") return { kicker: "视频", title: "分镜草案" };
-  if (mode === "email-faq") return { kicker: "外贸", title: "邮件 / FAQ" };
-  if (mode === "department-output") return { kicker: "复用", title: "部门输出" };
-  if (mode === "review") return { kicker: "安全", title: "审核材料" };
-  if (mode === "route") return { kicker: "行动", title: "路径材料" };
-  return { kicker: "占位", title: "待确认" };
+function getArtifactAudienceMaterial(mode: LabArtifactTarget["mode"]) {
+  if (mode === "output") return productDemoMaterials["department-output"];
+  return productDemoMaterials[mode] ?? productDemoMaterials.placeholder;
 }

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
+import { productDemoMaterials } from "../src/content/product-prototype";
 import { resolveStageTarget } from "../src/presentation/spatial-lab/stage-target";
 
 test("WP-59 FT-03 gives scenes 16-20 a readable safety-to-action path", () => {
@@ -69,7 +70,8 @@ test("WP-59 customer demo actors have audience bodies without engineering labels
   assert.match(labSource, /function CtaDockGreybox/);
   assert.match(labSource, /二维码待配置/);
   assert.match(labSource, /演示后行动/);
-  assert.match(labSource, /资料清单/);
+  assert.deepEqual(productDemoMaterials.route.rows, ["资料清单", "场景诊断", "样板计划"]);
+  assert.match(labSource, /productDemoMaterials\.route\.rows/);
   assert.match(actionPathSource, /30 分钟/);
   assert.match(runtimeSource, /previousTarget\.beatId === "20\.10" && target\.beatId === "21\.1"/);
   assert.match(runtimeSource, /previousTarget\.beatId === "21\.1" && target\.beatId === "20\.10"/);

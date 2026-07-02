@@ -48,6 +48,16 @@ test("WP-05B maps the lecture demo into reusable product outputs", () => {
   assert.match(productDemoMaterials["email-faq"].mailLines?.join(" ") ?? "", /质保 \/ 交期：待业务确认/);
 });
 
+test("WP-05B feeds the V4 spatial actor bodies from the lecture demo data", () => {
+  const labSource = readFileSync("src/presentation/spatial-lab/SpatialLabClientStage.tsx", "utf8");
+
+  assert.match(labSource, /productFacts\.slice\(0, 4\)/);
+  assert.match(labSource, /productClaims\[0\]\?\.benefit/);
+  assert.match(labSource, /productDemoMaterials\["department-output"\]\.departmentSlots/);
+  assert.match(labSource, /productDemoMaterials\.route\.rows/);
+  assert.doesNotMatch(labSource, /<span>资料清单<\/span>[\s\S]*<span>场景诊断<\/span>[\s\S]*<span>样板计划<\/span>/);
+});
+
 test("WP-05B keeps one registered product shell with stable anchors", () => {
   const source = readFileSync("src/presentation/stage/ProductStage.tsx", "utf8");
 

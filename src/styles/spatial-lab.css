@@ -1228,8 +1228,13 @@
 }
 
 .source-packet-lines span {
-  background: var(--lab-surface-border);
-  height: 4px;
+  background: rgba(240, 229, 210, 0.06);
+  border: 1px solid var(--lab-surface-border);
+  border-radius: 999px;
+  color: var(--lab-muted);
+  font-size: 12px;
+  line-height: 1.2;
+  padding: 6px 10px;
 }
 
 .source-packet-lines span:nth-child(2) {
@@ -1289,9 +1294,11 @@
   display: grid;
   font-size: 15px;
   font-weight: 650;
+  line-height: 1.2;
   min-height: 86px;
   min-width: 0;
   place-items: center;
+  text-align: center;
 }
 
 .human-review-checks {
@@ -1305,8 +1312,10 @@
   color: var(--lab-muted);
   display: grid;
   font-size: 13px;
+  line-height: 1.2;
   min-height: 48px;
   place-items: center;
+  text-align: center;
 }
 
 .action-confirm-switch {

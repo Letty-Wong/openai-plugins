@@ -13,7 +13,11 @@ import {
 } from "@/presentation/core/PresentationController";
 import { reduceKeyboardShortcut } from "@/presentation/core/keyboard";
 import type { BeatId, SceneId } from "@/presentation/core/state-types";
-import { productDemoMaterials } from "@/content/product-prototype";
+import {
+  productClaims,
+  productDemoMaterials,
+  productFacts
+} from "@/content/product-prototype";
 import { IntegrationRingGeometry } from "@/presentation/stage/IntegrationRing";
 import { ProductStage } from "@/presentation/stage/ProductStage";
 import { ActionPathGreybox } from "@/presentation/spatial-lab/ActionPathGreybox";
@@ -652,13 +656,13 @@ function SourcePacketGreybox() {
   return (
     <section className="spatial-lab-source-packet-geometry" data-actor-geometry="source-packet">
       <span className="actor-body-kicker">资料包</span>
-      <strong>已知资料</strong>
+      <strong>{productDemoMaterials.source.title}</strong>
       <div aria-hidden="true" className="source-packet-lines">
-        <span />
-        <span />
-        <span />
+        {productFacts.slice(0, 4).map((fact) => (
+          <span key={fact.id}>{fact.label}</span>
+        ))}
       </div>
-      <small>未知字段待确认</small>
+      <small>MOQ / 价格 / 质保 / 交期不自动填写</small>
     </section>
   );
 }
@@ -668,22 +672,23 @@ function FactToBenefitGreybox() {
     <section className="spatial-lab-fact-benefit-geometry" data-actor-geometry="fact-to-benefit">
       <span className="actor-body-kicker">转译</span>
       <div className="fact-benefit-flow" aria-hidden="true">
-        <span>事实</span>
+        <span>{productFacts[0]?.label ?? "事实"}</span>
         <i />
-        <span>利益</span>
+        <span>{productClaims[0]?.benefit ?? "利益"}</span>
       </div>
-      <small>只改表达，不改事实</small>
+      <small>{productDemoMaterials.benefit.hero}</small>
     </section>
   );
 }
 
 function OutputCardsGreybox() {
-  const departments = ["市场", "销售", "视频", "外贸", "客服"];
+  const departments = productDemoMaterials["department-output"].departmentSlots ?? ["市场", "销售", "视频", "外贸", "客服"];
 
   return (
     <section className="spatial-lab-output-cards-geometry" data-actor-geometry="output-cards">
-      <span className="actor-body-kicker">部门输出</span>
-      <div className="output-card-slots" aria-hidden="true">
+      <span className="actor-body-kicker">{productDemoMaterials["department-output"].kicker}</span>
+      <strong>{productDemoMaterials["department-output"].title}</strong>
+      <div className="output-card-slots">
         {departments.map((department) => (
           <span key={department}>{department}</span>
         ))}
@@ -693,14 +698,16 @@ function OutputCardsGreybox() {
 }
 
 function HumanReviewGreybox() {
+  const checks = productDemoMaterials.review.rows;
+
   return (
     <section className="spatial-lab-human-review-geometry" data-actor-geometry="human-review">
       <span className="actor-body-kicker">人工审核</span>
       <strong>承诺前先核对</strong>
       <div className="human-review-checks" aria-hidden="true">
-        <span>事实</span>
-        <span>边界</span>
-        <span>语气</span>
+        {checks.map((check) => (
+          <span key={check}>{check}</span>
+        ))}
       </div>
     </section>
   );
@@ -739,6 +746,8 @@ function ScenarioRadarGreybox() {
 }
 
 function CtaDockGreybox() {
+  const actionRows = productDemoMaterials.route.rows;
+
   return (
     <section className="spatial-lab-cta-dock-geometry" data-actor-geometry="cta-dock">
       <span className="actor-body-kicker">下一步</span>
@@ -750,9 +759,9 @@ function CtaDockGreybox() {
         <span />
       </div>
       <div className="cta-action-lines" aria-hidden="true">
-        <span>资料清单</span>
-        <span>场景诊断</span>
-        <span>样板计划</span>
+        {actionRows.map((row) => (
+          <span key={row}>{row}</span>
+        ))}
       </div>
       <small>二维码待配置</small>
     </section>

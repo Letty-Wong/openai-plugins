@@ -598,7 +598,18 @@ function JudgementQuestionGreybox({ beatId }: { readonly beatId: BeatId }) {
       className="spatial-lab-judgement-stack"
       data-actor-geometry="judgement-question"
       data-judgement-variant={variant}
+      data-opening-device-active={String(beatId.startsWith("01."))}
     >
+      <img
+        alt=""
+        aria-hidden="true"
+        className="spatial-lab-opening-device"
+        decoding="async"
+        height="900"
+        loading="eager"
+        src="/assets/opening/judgement-device-v1.webp"
+        width="1600"
+      />
       <div className="spatial-lab-judgement-geometry" aria-hidden={variant === "trend"}>
         <div className="spatial-lab-judgement-orbit" />
         <div className="spatial-lab-judgement-core" />
